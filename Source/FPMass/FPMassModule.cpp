@@ -1,6 +1,6 @@
 ﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "FPMass.h"
+#include "FPMassModule.h"
 
 #define LOCTEXT_NAMESPACE "FFPMassModule"
 
