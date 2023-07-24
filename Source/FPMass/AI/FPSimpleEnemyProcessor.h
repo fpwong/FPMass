@@ -1,10 +1,8 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "MassEntityTraitBase.h"
 #include "MassProcessor.h"
-#include "FPMass/ISMRepresentation/FPISMMisc.h"
-
+#include "NavigationSystem.h"
 #include "FPSimpleEnemyProcessor.generated.h"
 
 UENUM()
@@ -46,8 +44,11 @@ public:
 	UFPSimpleEnemyProcessor();
 
 	virtual void ConfigureQueries() override;
-
+	virtual void Initialize(UObject& Owner) override;
 	virtual void Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context) override;
+
+	UPROPERTY()
+	TObjectPtr<UNavigationSystemV1> NavigationSystem;
 
 	FMassEntityQuery EntityQuery;
 	FMassEntityQuery PushArraysToNiagaraSystems;

@@ -40,6 +40,11 @@ void UFPSimpleEnemyProcessor::ConfigureQueries()
 	EntityQuery.AddConstSharedRequirement<FFPSimpleEnemyParameters>();
 }
 
+void UFPSimpleEnemyProcessor::Initialize(UObject& Owner)
+{
+	NavigationSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+}
+
 void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	// Query mass for transform data
@@ -122,8 +127,19 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 					// wait 3 sec before deciding a new location to move to
 					if (EnemyState.LastMoved >= 0.25f)
 					{
-						FVector2D RandomDelta = FMath::RandPointInCircle(3000.0f);
-						TargetLocation = Transform.GetLocation() + FVector(RandomDelta.X, RandomDelta.Y, 0.0f);
+						constexpr float MaxWanderDistance = 3000.0f;
+
+						FNavLocation TargetNavLocation;
+						if (NavigationSystem && NavigationSystem->GetRandomReachablePointInRadius(Transform.GetLocation(), MaxWanderDistance, TargetNavLocation))
+						{
+							TargetLocation = TargetNavLocation;
+						}
+						else
+						{
+							FVector2D RandomDelta = FMath::RandPointInCircle(MaxWanderDistance);
+							TargetLocation = Transform.GetLocation() + FVector(RandomDelta.X, RandomDelta.Y, 0.0f);
+						}
+
 						EnemyState.LastMoved = 0.0f;
 						EnemyState.State = EFPSimpleEnemyState::Moving;
 						MoveToTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
