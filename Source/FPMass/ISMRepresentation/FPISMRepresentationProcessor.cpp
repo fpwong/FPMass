@@ -2,6 +2,7 @@
 
 #include "FPISMRepresentationProcessor.h"
 
+#include "AnimToTextureDataAsset.h"
 #include "FPISMActor.h"
 #include "FPISMRepresentationTrait.h"
 #include "FPISMSubsystem.h"
@@ -60,15 +61,11 @@ void UFPISMRepresentationProcessors::Execute(FMassEntityManager& EntityManager, 
 					ISMActor->SharedData.StaticMeshInstanceTransforms.Add(Transform);
 					ISMActor->SharedData.StaticMeshInstancePrevTransforms.Add(InstanceId.PrevTransform);
 
-					// TArray<float> BlendData = { WalkBlend, AnimationState.MontageBlend, IdleWalkFrame, MontageCurrFrame, MontageStartFrame, MontageNumFrames };
-					// const auto CustomData = { Anim.WalkBlend, Anim.MontageBlend, , 0.0f, 0.0f, 0.0f};
 					auto CustomData = Anim.AsCustomData();
-					UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
+					// UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
 					ISMActor->SharedData.StaticMeshInstanceCustomFloats.Append(CustomData);
 
 					InstanceId.PrevTransform = Transform;
-
-					// DrawDebugString(Context.GetWorld(), Transform.GetLocation(), FString::FromInt(EntityId), nullptr, FColor::White, 0.0f);
 				}
 			}
 		}
