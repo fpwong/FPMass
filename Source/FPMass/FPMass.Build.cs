@@ -24,9 +24,10 @@ public class FPMass : ModuleRules
 				"Slate",
 				"SlateCore",
 				// ... add private dependencies that you statically link with here ...
-
-				"MassEntity",
 				"StructUtils",
+
+				// ~~ Mass
+				"MassEntity",
 				"MassCommon",
 				"MassMovement",
 				"MassActors",
@@ -40,7 +41,14 @@ public class FPMass : ModuleRules
 				"MassReplication",
 				"MassNavigation",
 				"MassLOD",
-				"MassSimulation"
+				"MassSimulation",
+
+				// ~~ Other
+				"GameplayAbilities",
+				"AnimToTexture",
+
+				// ~~ My plugins
+				"FPGameplayAbilities"
 			}
 		);
 	}

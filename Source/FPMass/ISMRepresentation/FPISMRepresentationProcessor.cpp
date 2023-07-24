@@ -23,7 +23,7 @@ void UFPISMRepresentationProcessors::ConfigureQueries()
 	PositionToNiagaraFragmentQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadOnly);
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMInstanceIdFragment>(EMassFragmentAccess::ReadWrite);
-	PositionToNiagaraFragmentQuery.AddConstSharedRequirement<FFPISMSharedFragment>();
+	PositionToNiagaraFragmentQuery.AddConstSharedRequirement<FFPISMParameters>();
 	PositionToNiagaraFragmentQuery.RegisterWithProcessor(*this);
 }
 
@@ -40,11 +40,11 @@ void UFPISMRepresentationProcessors::Execute(FMassEntityManager& EntityManager, 
 		const auto& AnimationList = Context.GetFragmentView<FFPISMAnimationFragment>();
 		const auto& InstanceIdList = Context.GetMutableFragmentView<FFPISMInstanceIdFragment>();
 
-		const auto& ISMSharedFragment = Context.GetConstSharedFragment<FFPISMSharedFragment>();
+		const auto& ISMSharedFragment = Context.GetConstSharedFragment<FFPISMParameters>();
 
 		if (UFPISMSubsystem* ISMSubsystem = Context.GetWorld()->GetSubsystem<UFPISMSubsystem>())
 		{
-			if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(ISMSharedFragment.StaticMesh.LoadSynchronous()))
+			if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(ISMSharedFragment.AnimToTextureData->StaticMesh.LoadSynchronous()))
 			{
 				for (int i = 0; i < NumEntities; ++i)
 				{
@@ -63,7 +63,7 @@ void UFPISMRepresentationProcessors::Execute(FMassEntityManager& EntityManager, 
 					// TArray<float> BlendData = { WalkBlend, AnimationState.MontageBlend, IdleWalkFrame, MontageCurrFrame, MontageStartFrame, MontageNumFrames };
 					// const auto CustomData = { Anim.WalkBlend, Anim.MontageBlend, , 0.0f, 0.0f, 0.0f};
 					auto CustomData = Anim.AsCustomData();
-					// UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
+					UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
 					ISMActor->SharedData.StaticMeshInstanceCustomFloats.Append(CustomData);
 
 					InstanceId.PrevTransform = Transform;

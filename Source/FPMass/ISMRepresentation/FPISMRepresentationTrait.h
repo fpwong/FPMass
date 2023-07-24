@@ -9,6 +9,7 @@
 #include "FPISMRepresentationTrait.generated.h"
 
 class AFPISMActor;
+class UAnimToTextureDataAsset;
 
 USTRUCT(BlueprintType)
 struct FPMASS_API FFPISMAnimationState
@@ -52,12 +53,12 @@ struct FPMASS_API FFPISMInstanceIdFragment : public FMassFragment
 };
 
 USTRUCT(BlueprintType)
-struct FPMASS_API FFPISMSharedFragment : public FMassSharedFragment
+struct FPMASS_API FFPISMParameters : public FMassSharedFragment
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-	TSoftObjectPtr<UStaticMesh> StaticMesh;
+	UAnimToTextureDataAsset* AnimToTextureData;
 
 	UPROPERTY(EditAnywhere)
 	FTransform RelativeTransform;
@@ -72,6 +73,5 @@ public:
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 
 	UPROPERTY(EditAnywhere)
-	FFPISMSharedFragment StaticMeshSharedFragment;
-	// TSoftObjectPtr<UStaticMesh> StaticMesh;
+	FFPISMParameters ISMSharedParameters;
 };

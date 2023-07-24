@@ -6,7 +6,6 @@
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
 #include "MassEntityView.h"
-#include "Components/InstancedStaticMeshComponent.h"
 
 TArray<float> FFPISMAnimationFragment::AsCustomData() const
 {
@@ -34,63 +33,10 @@ void UFPISMRepresentationTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
 
 	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
 
-	// if (!StaticMesh)
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("Forgot to set static mesh on FPISMRepresentationTrait"));
-	// 	return;
-	// }
-
-	// Evil main thread loads
-	// StaticMesh.LoadSynchronous();
-
-	// UStaticMesh* SM = StaticMeshSharedFragment.StaticMesh.LoadSynchronous();
-	// if (!SM)
-	// {
-	// 	UE_LOG(LogTemp, Warning, TEXT("SM Invalid!"));
-	// 	return;
-	// }
-
-	const FConstSharedStruct& SharedStaticMeshFragment = EntityManager.GetOrCreateConstSharedFragment(StaticMeshSharedFragment);
-	BuildContext.AddConstSharedFragment(SharedStaticMeshFragment);
+	const FConstSharedStruct& ISMParameters = EntityManager.GetOrCreateConstSharedFragment(ISMSharedParameters);
+	BuildContext.AddConstSharedFragment(ISMParameters);
 
 	BuildContext.RequireFragment<FTransformFragment>();
 
 	BuildContext.AddFragment<FFPISMInstanceIdFragment>();
-
-	// BuildContext.GetMutableObjectFragmentInitializers().Add([=](UObject& Owner, FMassEntityView& EntityView, const EMassTranslationDirection CurrentDirection)
-	// {
-	// 	const auto& ISMSharedFragment = EntityView.GetConstSharedFragmentData<FFPISMSharedFragment>();
-	// 	if (UStaticMesh* SM = ISMSharedFragment.StaticMesh.LoadSynchronous())
-	// 	{
-	// 		if (UFPISMSubsystem* ISMSubsystem = UWorld::GetSubsystem<UFPISMSubsystem>(Owner.GetWorld()))
-	// 		{
-	// 			if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(SM))
-	// 			{
-	// 				FFPISMActorSharedFragment SharedISMActorFrag;
-	// 				SharedISMActorFrag.ISMActor = ISMActor;
-	// 				const FSharedStruct& SharedFrag = EntityManager.GetOrCreateSharedFragmentByHash<FFPISMActorSharedFragment>(SM->GetUniqueID(), SharedISMActorFrag);
-	// 				BuildContext.AddSharedFragment(SharedFrag);
-	// 			}
-	// 		}
-	// 	}
-	//
-	// // 	// FFPISMInstanceIdFragment& InstanceIdFragment = EntityView.GetFragmentData<FFPISMInstanceIdFragment>();
-	// // 	//
-	// // 	// const FTransform& Transform = EntityView.GetFragmentData<FTransformFragment>().GetTransform();
-	// // 	// const FFPISMSharedFragment& ISMSharedFragment = EntityView.GetConstSharedFragmentData<FFPISMSharedFragment>();
-	// // 	//
-	// // 	// UFPISMSubsystem* ISMSubsystem = UWorld::GetSubsystem<UFPISMSubsystem>(Owner.GetWorld());
-	// // 	// if (UInstancedStaticMeshComponent* ISMComponent = ISMSubsystem->FindOrCreateISM(ISMSharedFragment.StaticMesh.LoadSynchronous()))
-	// // 	// {
-	// // 	// 	InstanceIdFragment.InstanceId = ISMComponent->AddInstance(Transform, true);
-	// // 	// 	InstanceIdFragment.PrevTransform = Transform;
-	// // 	// 	UE_LOG(LogTemp, Warning, TEXT("Made ISM %d"), InstanceIdFragment.InstanceId);
-	// // 	// }
-	// //
-	// // 	// AbilitySysFrag.AbilitySystem = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(AsActor);
-	// });
-	// FSharedStruct SharedFragment =
-	// 	ISMSubsystem->GetOrCreateSharedNiagaraFragmentForSystemType(SharedNiagaraSystem.Get(), StaticMesh.Get(), MaterialOverride.Get());
-
-	// BuildContext.AddSharedFragment(SharedFragment);
 }
