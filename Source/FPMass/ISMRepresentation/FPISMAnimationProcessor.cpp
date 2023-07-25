@@ -2,20 +2,22 @@
 
 #include "FPISMAnimationProcessor.h"
 
-#include "FPISMActor.h"
 #include "FPISMRepresentationTrait.h"
 #include "FPISMSubsystem.h"
 #include "MassCommonFragments.h"
+#include "MassCommonUtils.h"
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
-#include "MassRepresentationTypes.h"
 #include "MassSignalSubsystem.h"
+#include "FPVertexAnimationTextures/FPAnimToTextureDataAsset.h"
+
+#define USE_GAME_THREAD false
 
 UFPISMAnimationProcessors::UFPISMAnimationProcessors() : EntityQuery(*this)
 {
 	ExecutionFlags = (int32)(EProcessorExecutionFlags::Client | EProcessorExecutionFlags::Standalone);
 	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Movement);
-	bRequiresGameThreadExecution = false;
+	bRequiresGameThreadExecution = USE_GAME_THREAD;
 }
 
 void UFPISMAnimationProcessors::ConfigureQueries()
@@ -24,6 +26,8 @@ void UFPISMAnimationProcessors::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 
 	EntityQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadWrite);
+
+	EntityQuery.AddConstSharedRequirement<FFPISMParameters>();
 }
 
 void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -34,11 +38,14 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 		DECLARE_SCOPE_CYCLE_COUNTER(TEXT("UFPISMAnimationProcessors::Execute"), STAT_FPISMAnimationProcessors_Execute, STATGROUP_Game);
 		const int32 NumEntities = Context.GetNumEntities();
 
-		// const auto& TransformList = Context.GetFragmentView<FTransformFragment>();
 		const auto& VelocityList = Context.GetFragmentView<FMassVelocityFragment>();
 		const auto& AnimationList = Context.GetMutableFragmentView<FFPISMAnimationFragment>();
 
-		float DeltaTime = Context.GetWorld()->DeltaTimeSeconds;
+		const auto& ISMParameters = Context.GetConstSharedFragment<FFPISMParameters>();
+
+		const float DeltaTime = Context.GetWorld()->DeltaTimeSeconds;
+
+		UFPAnimToTextureDataAsset* FPAnimToData = Cast<UFPAnimToTextureDataAsset>(ISMParameters.AnimToTextureData);
 
 		for (int i = 0; i < NumEntities; ++i)
 		{
@@ -51,6 +58,7 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 			AnimationState.WalkBlend = FMath::FInterpTo(AnimationState.WalkBlend, TargetWalkBlend, DeltaTime, 8.0f);
 
 			float TargetMontageBlend = 0;
+			float MontageInterpSpeed = 12.0f;
 
 			if (AnimationState.CurrentMontage.IsSet())
 			{
@@ -59,18 +67,53 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 				TargetMontageBlend = 1;
 
 				// update current frame
-				float Delta = Context.GetWorld()->GetDeltaSeconds() * 30.0f; // 30 fps?
-				Animation.CurrentFrame += Delta;
+				const float AnimSpeed = 1.0f;
+				const float Delta = Context.GetWorld()->GetDeltaSeconds() * 30.0f * AnimSpeed; // 30 fps?
+				MontageInterpSpeed += FMath::Max(1.0f, AnimSpeed);
+
+				float NewFrame = Animation.CurrentFrame + Delta;
+
+				if (FPAnimToData)
+				{
+					const uint8& AnimIndex = Animation.AnimIndex;
+					if (FPAnimToData->AnimNotifyInfo.IsValidIndex(AnimIndex))
+					{
+						for (const FFPAnimNotifyEvent& NotifyEvent : FPAnimToData->AnimNotifyInfo[AnimIndex].AnimNotifies)
+						{
+							if (Animation.CurrentFrame <= NotifyEvent.Frame && NewFrame >= NotifyEvent.Frame)
+							{
+#if USE_GAME_THREAD
+								Animation.AnimationCallbacks.OnAnimNotify.ExecuteIfBound();
+#else
+								Context.Defer().PushCommand<FMassDeferredSetCommand>([Value = "Foo", Callback = Animation.AnimationCallbacks.OnAnimNotify](FMassEntityManager& Manager)
+								{
+									Callback.ExecuteIfBound(Value);
+								});
+#endif
+							}
+						}
+					}
+				}
+
+				Animation.CurrentFrame = NewFrame;
 
 				// stop playing the animation if we exceed the number of frames
 				if (Animation.CurrentFrame >= Animation.NumFrames)
 				{
+#if USE_GAME_THREAD
+					Animation.AnimationCallbacks.OnAnimEnded.ExecuteIfBound();
+#else
+					Context.Defer().PushCommand<FMassDeferredSetCommand>([Callback = Animation.AnimationCallbacks.OnAnimEnded](FMassEntityManager& Manager)
+					{
+						Callback.ExecuteIfBound();
+					});
+#endif
+
 					AnimationState.CurrentMontage.Reset();
-					// TODO how do signals work?
 				}
 			}
 
-			AnimationState.MontageBlend = FMath::FInterpTo(AnimationState.MontageBlend, TargetMontageBlend, DeltaTime, 8.0f);
+			AnimationState.MontageBlend = FMath::FInterpTo(AnimationState.MontageBlend, TargetMontageBlend, DeltaTime, MontageInterpSpeed);
 		}
 	});
 }

@@ -4,14 +4,13 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
-#include "AnimToTextureDataAsset.h"
 #include "FPAIFragments.h"
 #include "MassCommonFragments.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityView.h"
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
 #include "MassNavigationFragments.h"
-#include "MassRepresentationTypes.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystem/FPGAGameplayAbilitiesLibrary.h"
 #include "FPMass/ISMRepresentation/FPISMRepresentationTrait.h"
@@ -115,17 +114,12 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				UFPGAGameplayAbilitiesLibrary::GetLocationFromTargetData(TargetData.TargetData, 0, TargetLocation);
 			}
 
-			// DrawDebugLine(GetWorld(), Transform.GetLocation(), MoveToTarget.Center, FColor::Red, false, 0.0f, 0, 3.0f);
-			// DrawDebugPoint(GetWorld(), MoveToTarget.Center, 24.0f, FColor::Red, false, 0.0f);
-
-			// we reached the target point
-
 			switch (EnemyState.State)
 			{
 				case EFPSimpleEnemyState::Idle:
 				{
 					// wait 3 sec before deciding a new location to move to
-					if (EnemyState.LastMoved >= 0.25f)
+					if (EnemyState.LastMoved >= 0.5f)
 					{
 						constexpr float MaxWanderDistance = 3000.0f;
 
@@ -143,7 +137,6 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 						EnemyState.LastMoved = 0.0f;
 						EnemyState.State = EFPSimpleEnemyState::Moving;
 						MoveToTarget.CreateNewAction(EMassMovementAction::Move, *Context.GetWorld());
-						// UE_LOG(LogTemp, Warning, TEXT("START MOVING"));
 					}
 					else
 					{
@@ -152,9 +145,6 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 					}
 
 					Velocity.Value = FVector::Zero();
-
-					// UE_LOG(LogTemp, Warning, TEXT("IDLE: %f"), AIState.LastMoved);
-
 					break;
 				}
 				case EFPSimpleEnemyState::Moving:
@@ -164,51 +154,34 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 					{
 						if (TargetActor)
 						{
-							FFPISMAnimationState NewAnimation;
-							// NewAnimation.NumFrames = 41;
-							// NewAnimation.StartFrame = 82;
-							if (ISMParameters.AnimToTextureData)
+							// run ability if we have a target
+							if (IsValid(EnemyParameters.AttackAbility) && AbilitySystem.IsValid())
 							{
-								if (ISMParameters.AnimToTextureData->Animations.IsValidIndex(EnemyParameters.AttackAnimationIndex))
-								{
-									FAnimInfo& AnimInfo = ISMParameters.AnimToTextureData->Animations[EnemyParameters.AttackAnimationIndex];
-									NewAnimation.NumFrames = AnimInfo.NumFrames;
-									NewAnimation.StartFrame = AnimInfo.AnimStart;
-								}
-								// UE_LOG(LogTemp, Warning, TEXT("%d %d"), NewAnimation.NumFrames, NewAnimation.StartFrame);
-							}
+								FGameplayEventData EventData;
+								EventData.TargetData = TargetData.TargetData;
 
-							AnimState.CurrentMontage = NewAnimation;
+								FMassEntityHandle Entity = Context.GetEntity(i);
+								FOnGameplayAbilityEnded::FDelegate OnAbilityEnded = FOnGameplayAbilityEnded::FDelegate::CreateLambda([EntityHandle = Entity](UGameplayAbility* Ability)
+								{
+									const FMassEntityManager& EntityManager = Ability->GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetEntityManager();
+									FMassEntityView EntityView(EntityManager, EntityHandle);
+
+									if (FFPSimpleEnemyStateFragment* LocalEnemyState = EntityView.GetFragmentDataPtr<FFPSimpleEnemyStateFragment>())
+									{
+										// UE_LOG(LogTemp, Warning, TEXT("Finished gameplay ability!"));
+										LocalEnemyState->State = EFPSimpleEnemyState::Idle;
+									}
+								});
+
+								UFPGAGameplayAbilitiesLibrary::ActivateAbilityWithEvent(AbilitySystem.Get(), EnemyParameters.AttackAbility, EventData, &OnAbilityEnded);
+							}
 
 							EnemyState.State = EFPSimpleEnemyState::Attacking;
 							Velocity.Value = FVector::Zero();
-
-							// apply ability if we have a target
-							if (IsValid(EnemyParameters.AttackAbility) && AbilitySystem.IsValid())
-							{
-								// UE_LOG(LogTemp, Warning, TEXT("APPLY ABILITY~"));
-								// AbilitySystem->TryActivateAbilityByClass(AbilityParamsList.AttackAbility);
-
-								if (FGameplayAbilitySpec* Spec = AbilitySystem->FindAbilitySpecFromClass(EnemyParameters.AttackAbility))
-								{
-									FGameplayTag EventTag; // = EventData.EventTag.IsValid() ? EventData.EventTag : FFPGAGlobalTags::Get().Misc_Dummy;
-									FGameplayEventData EventData;
-									EventData.TargetData = TargetData.TargetData;
-									if (AbilitySystem->TriggerAbilityFromGameplayEvent(Spec->Handle, AbilitySystem->AbilityActorInfo.Get(), EventTag, &EventData, *AbilitySystem))
-									{
-										DrawDebugString(Context.GetWorld(), Transform.GetLocation(), "ATTACK", nullptr, FColor::Red, 1.0f);
-										// UE_LOG(LogTemp, Warning, TEXT("Tried to attack"));
-									}
-									else
-									{
-										UE_LOG(LogTemp, Warning, TEXT("Failed to attack"));
-									}
-								}
-							}
 						}
 						else // idle
 						{
-							EnemyState.State = EFPSimpleEnemyState::Attacking;
+							EnemyState.State = EFPSimpleEnemyState::Idle;
 							Velocity.Value = FVector::Zero();
 						}
 
@@ -222,17 +195,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				}
 				case EFPSimpleEnemyState::Attacking:
 				{
-					if (!AnimState.CurrentMontage)
-					{
-						EnemyState.State = EFPSimpleEnemyState::Idle;
-						// MoveToTarget.CreateNewAction(EMassMovementAction::Stand, *Context.GetWorld());
-						// UE_LOG(LogTemp, Warning, TEXT("STOP ANIM"));
-					}
-
 					Velocity.Value = FVector::Zero();
-
-					// UE_LOG(LogTemp, Warning, TEXT("ATTACKING: %f"), AIState.LastMoved);
-
 					break;
 				}
 				default: ;
@@ -245,10 +208,25 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			MoveToTarget.DesiredSpeed = FMassInt16Real(1000.0f);
 			MoveToTarget.SlackRadius = 100.0f;
 			MoveToTarget.IntentAtGoal = EMassMovementAction::Stand;
-			// UE_LOG(LogTemp, Warning, TEXT("%d %d"), (int) MoveToTarget.GetCurrentActionID(), (int) MoveToTarget.GetCurrentAction());
-			// UE_LOG(LogTemp, Warning, TEXT("%f"), MoveToTarget.DistanceToGoal);
 
-			// DrawDebugSphere(Context.GetWorld(), TargetLocation, 50.0f, 4, FColor::Red, false, 0.0f);
+#if 0 // debug draw state
+			FString CurrentState;
+			switch (EnemyState.State)
+			{
+				case EFPSimpleEnemyState::Idle:
+					CurrentState = "IDLE";
+					break;
+				case EFPSimpleEnemyState::Moving:
+					CurrentState = "MOVING";
+					break;
+				case EFPSimpleEnemyState::Attacking:
+					CurrentState = "ATTACKING";
+					break;
+				default: ;
+			}
+
+			DrawDebugString(Context.GetWorld(), Transform.GetLocation(), CurrentState, nullptr, FColor::Red, 0.0f);
+#endif
 		}
 	});
 }
