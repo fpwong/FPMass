@@ -12,6 +12,7 @@ UFPNavMeshSnappingProcessor::UFPNavMeshSnappingProcessor()
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
 	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Movement);
+	bAutoRegisterWithProcessingPhases = false;
 }
 
 void UFPNavMeshSnappingProcessor::ConfigureQueries()
