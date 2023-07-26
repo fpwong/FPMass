@@ -13,14 +13,12 @@ UFPSlideMovementProcessor::UFPSlideMovementProcessor()
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
-	// bRequiresGameThreadExecution = false;
+	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Avoidance);
 }
 
 void UFPSlideMovementProcessor::ConfigureQueries()
 {
-	// MovementEntityQuery.AddTagRequirement<FMSBasicMovement>(EMassFragmentPresence::All);
 	MovementEntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-	//must have an FMassForceFragment and we are only reading it
 	MovementEntityQuery.AddRequirement<FMassForceFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
@@ -31,13 +29,15 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 {
 	MovementEntityQuery.ForEachEntityChunk(EntityManager, Context, [](FMassExecutionContext& Context)
 	{
-		QUICK_SCOPE_CYCLE_COUNTER(STAT_MASS_MovementEntityQuery);
+		QUICK_SCOPE_CYCLE_COUNTER(STAT_FPSlideMovementProcessor);
+
+		FCollisionObjectQueryParams ObjectParams;
+		ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 
 		const int32 NumEntities = Context.GetNumEntities();
 
 		const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
-
-		//This one is readonly, so we don't need Mutable
 		const TConstArrayView<FMassForceFragment> ForceList = Context.GetFragmentView<FMassForceFragment>();
 		const TConstArrayView<FAgentRadiusFragment> RadiusList = Context.GetFragmentView<FAgentRadiusFragment>();
 		const TArrayView<FMassVelocityFragment> VelocityList = Context.GetMutableFragmentView<FMassVelocityFragment>();
@@ -48,24 +48,44 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 
 		float GravityZ = World->GetGravityZ();
 
-		//Loop over every entity in the current chunk and do stuff!
 		for (int32 EntityIndex = 0; EntityIndex < NumEntities; ++EntityIndex)
 		{
 			FTransform& Transform = TransformList[EntityIndex].GetMutableTransform();
 
-			const FVector& Force = ForceList[EntityIndex].Value;
-			//+ FVector(0, 0, GravityZ);
+			FVector Force = ForceList[EntityIndex].Value;
+
+			const float& Radius = RadiusList[EntityIndex].Radius;
+
+			FSlide Slide;
+			Slide.Shape = FCollisionShape::MakeSphere(Radius);
+
+			bool bIsInAir = false;
+
+			FHitResult GroundHit;
+
+			if (World->SweepSingleByObjectType(GroundHit, Transform.GetLocation(), Transform.GetLocation() + FVector(0, 0, -1.5 * Radius), FQuat::Identity, ObjectParams, Slide.Shape))
+			{
+				float DistToGround = (GroundHit.Location - Transform.GetLocation()).Size();
+				bIsInAir = DistToGround >= Radius + 5.0f;
+			}
+			else
+			{
+				bIsInAir = true;
+			}
+
+			if (bIsInAir)
+			{
+				// don't apply external forces when in the air
+				Force = FVector(0, 0, GravityZ);
+			}
 
 			FVector& Velocity = VelocityList[EntityIndex].Value;
 			Velocity += Force * DeltaTime;
 
-			const float& Radius = RadiusList[EntityIndex].Radius;
-
 			FVector Delta = Velocity * DeltaTime;
 
 			// perform the slide
-			FSlide Slide;
-			Slide.Shape = FCollisionShape::MakeSphere(Radius);
+
 			Slide.Position = Transform.GetLocation();
 			Slide.Remainder = Delta;
 			Slide.QueryParams = FCollisionQueryParams(FName("SlideMovementProcessor"), false, nullptr);
@@ -76,9 +96,12 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			{
 				if (Hit.bStartPenetrating)
 				{
-					// Stuck! Draw a red warning sphere
+					// TODO considering teleporting a bit above the ground to resolve collision if this happens often
+					UE_LOG(LogTemp, Error, TEXT("Entity is stuck!"));
+
 #if FP_DRAW_DEBUG
-					// DrawDebugSphere(World, Slide.Position, Slide.Shape.GetSphereRadius() + 5.0f, 16, FColor::Red);
+					// Stuck! Draw a red warning sphere
+					DrawDebugSphere(World, Slide.Position, Slide.Shape.GetSphereRadius() + 5.0f, 16, FColor::Red);
 #endif
 					break;
 				}
@@ -195,6 +218,7 @@ bool FSlide::DepenAndSweep(const UWorld* World, FHitResult& Hit, const FVector& 
 			++NumInitialOverlaps;
 		}
 	}
+
 	if (NumInitialOverlaps == 0)
 	{
 		Hit = Hits.Last();

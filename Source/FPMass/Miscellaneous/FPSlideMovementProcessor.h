@@ -23,8 +23,8 @@ public:
 
 
 /**
- * Helper class for slide collision against the world
- * Credits: https://blog.littlepolygon.com/posts/sliding/
+ * Class to resolve movement collisions by sliding along the surface
+ * Basically straight from here: https://blog.littlepolygon.com/posts/sliding/
  */
 class FSlide
 {
@@ -36,7 +36,7 @@ public:
 	FVector Remainder = FVector(0.0f);
 
 	// the shape to slide
-	FCollisionShape Shape = FCollisionShape::MakeSphere(20.0f);
+	FCollisionShape Shape = FCollisionShape::MakeSphere(60.0f);
 
 	// the rotation of the shape
 	FQuat Rotation = FQuat::Identity;
