@@ -45,34 +45,42 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 			FTransform& CurrentTransform = LocationList[EntityIndex].GetMutableTransform();
 			auto& EnemyState = EnemyStateList[EntityIndex].State;
 
+			TOptional<FVector> LookAtTarget;
+
 			switch (EnemyState)
 			{
 				case EFPSimpleEnemyState::Moving: // rotate to velocity
 				{
 					// Snap position to move target directly
 					FVector Velocity = VelocityList[EntityIndex].Value;
-					if (Velocity.SizeSquared2D() >= 50 * 50)
+					if (Velocity.SizeSquared2D() >= 25 * 25)
 					{
 						// UE_LOG(LogTemp, Warning, TEXT("Velocity %f"), Velocity.SizeSquared2D());
-						auto NewRotation = VelocityList[EntityIndex].Value.ToOrientationQuat();
-						CurrentTransform.SetRotation(FMath::QInterpTo(CurrentTransform.GetRotation(), NewRotation, DeltaTime, 12.0f));
+						LookAtTarget = CurrentTransform.GetLocation() + VelocityList[EntityIndex].Value;
 					}
 					break;
 				}
 				case EFPSimpleEnemyState::Idle:
 				case EFPSimpleEnemyState::Attacking: // rotate to target data
 				{
-					auto& TargetData = TargetDataList[EntityIndex].TargetData;
+					FGameplayAbilityTargetDataHandle& TargetData = TargetDataList[EntityIndex].TargetData;
 					FVector TargetLocation;
 					if (UFPGAGameplayAbilitiesLibrary::GetLocationFromTargetData(TargetData, 0, TargetLocation))
 					{
-						FRotator CurrRotation = CurrentTransform.Rotator();
-						FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(CurrentTransform.GetLocation(), TargetLocation);
-						CurrentTransform.SetRotation(FMath::RInterpTo(CurrRotation, NewRotation, DeltaTime, 12.0f).Quaternion());
+						LookAtTarget = TargetLocation;
 					}
 					break;
 				}
 				default: ;
+			}
+
+			if (LookAtTarget.IsSet())
+			{
+				FRotator CurrRotation = CurrentTransform.Rotator();
+				FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(CurrentTransform.GetLocation(), LookAtTarget.GetValue());
+				NewRotation.Pitch = 0;
+				NewRotation.Roll = 0;
+				CurrentTransform.SetRotation(FMath::RInterpTo(CurrRotation, NewRotation, DeltaTime, 12.0f).Quaternion());
 			}
 		}
 	});
