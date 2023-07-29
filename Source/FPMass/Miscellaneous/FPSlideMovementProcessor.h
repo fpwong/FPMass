@@ -7,6 +7,12 @@
 #include "UObject/Object.h"
 #include "FPSlideMovementProcessor.generated.h"
 
+USTRUCT()
+struct FFPMassTag_SlideMovement : public FMassTag
+{
+	GENERATED_BODY()
+};
+
 UCLASS()
 class FPMASS_API UFPSlideMovementProcessor : public UMassProcessor
 {

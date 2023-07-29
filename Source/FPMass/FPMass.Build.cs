@@ -15,6 +15,7 @@ public class FPMass : ModuleRules
 				// ... add other public dependencies that you statically link with here ...
 				"FPVertexAnimationTextures",
 				"MassRepresentation",
+				"DeveloperSettings"
 			}
 		);
 
@@ -48,6 +49,7 @@ public class FPMass : ModuleRules
 				"GameplayAbilities",
 				"AnimToTexture",
 				"NavigationSystem",
+				"NetCore",
 
 				// ~~ Custom plugins
 				"FPGameplayAbilities",

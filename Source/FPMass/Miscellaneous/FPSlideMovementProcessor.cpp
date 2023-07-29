@@ -22,6 +22,7 @@ void UFPSlideMovementProcessor::ConfigureQueries()
 	MovementEntityQuery.AddRequirement<FMassForceFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
+	MovementEntityQuery.AddTagRequirement<FFPMassTag_SlideMovement>(EMassFragmentPresence::All);
 	MovementEntityQuery.RegisterWithProcessor(*this);
 }
 
