@@ -19,5 +19,23 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
+	],
+	"Plugins": [
+		{
+			"Name": "FPVertexAnimationTextures",
+			"Enabled": true
+		},
+		{
+			"Name": "StructUtils",
+			"Enabled": true
+		},
+		{
+			"Name": "MassCommunitySample",
+			"Enabled": true
+		},
+		{
+			"Name": "FPGameplayAbilities",
+			"Enabled": true
+		}
 	]
 }

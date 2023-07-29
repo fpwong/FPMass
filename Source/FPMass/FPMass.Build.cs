@@ -13,7 +13,8 @@ public class FPMass : ModuleRules
 			{
 				"Core",
 				// ... add other public dependencies that you statically link with here ...
-				"FPVertexAnimationTextures"
+				"FPVertexAnimationTextures",
+				"MassRepresentation",
 			}
 		);
 
@@ -38,7 +39,6 @@ public class FPMass : ModuleRules
 				"MassCrowd",
 				"MassActors",
 				"MassSpawner",
-				"MassRepresentation",
 				"MassReplication",
 				"MassNavigation",
 				"MassLOD",

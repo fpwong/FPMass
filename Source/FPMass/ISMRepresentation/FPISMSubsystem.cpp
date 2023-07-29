@@ -68,7 +68,7 @@ void UFPISMSubsystem::BeginVisualChanges() const
 {
 	for (auto& Elem : ISMActors)
 	{
-		FISMCSharedData& SharedData = Elem.Value->SharedData;
+		FFPISMData& SharedData = Elem.Value->SharedData;
 		// UE_LOG(LogTemp, Warning, TEXT("BEGIN %d"), SharedData.UpdateInstanceIds.Num());
 
 		SharedData.UpdateInstanceIds.Reset();
@@ -83,7 +83,7 @@ void UFPISMSubsystem::EndVisualChanges() const
 {
 	for (auto& Elem : ISMActors)
 	{
-		FISMCSharedData& SharedData = Elem.Value->SharedData;
+		FFPISMData& SharedData = Elem.Value->SharedData;
 		UInstancedStaticMeshComponent* ISMComp = Elem.Value->InstancedStaticMesh;
 		ISMComp->UpdateInstances(SharedData.UpdateInstanceIds, SharedData.StaticMeshInstanceTransforms, SharedData.StaticMeshInstancePrevTransforms, 6, SharedData.StaticMeshInstanceCustomFloats);
 		// UE_LOG(LogTemp, Warning, TEXT("END %d"), SharedData.UpdateInstanceIds.Num());

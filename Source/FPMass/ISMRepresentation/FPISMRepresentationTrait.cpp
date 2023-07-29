@@ -38,5 +38,6 @@ void UFPISMRepresentationTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
 
 	BuildContext.RequireFragment<FTransformFragment>();
 
-	BuildContext.AddFragment<FFPISMInstanceIdFragment>();
+	BuildContext.AddFragment<FFPISMStateFragment>();
+	BuildContext.AddFragment<FFPISMAnimationFragment>();
 }

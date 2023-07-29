@@ -73,7 +73,7 @@ struct FPMASS_API FFPISMAnimationNotifyEventFragment : public FMassFragment
 
 
 USTRUCT(BlueprintType)
-struct FPMASS_API FFPISMInstanceIdFragment : public FMassFragment
+struct FPMASS_API FFPISMStateFragment : public FMassFragment
 {
 	GENERATED_BODY()
 

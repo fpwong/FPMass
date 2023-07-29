@@ -4,12 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "FPISMSubsystem.h"
-
 #include "FPISMActor.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class FPMASS_API AFPISMActor : public AActor
 {
@@ -21,6 +17,5 @@ public:
 	UPROPERTY()
 	UInstancedStaticMeshComponent* InstancedStaticMesh;
 
-	UPROPERTY()
-	FISMCSharedData SharedData;
+	FFPISMData SharedData;
 };

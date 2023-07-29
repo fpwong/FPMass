@@ -7,7 +7,7 @@
 #include "FPISMMisc.generated.h"
 
 class UAnimToTextureDataAsset;
-struct FAnimInfo;
+struct FAnimToTextureAnimInfo;
 
 USTRUCT(BlueprintType)
 struct FPMASS_API FFPISMAnimation
@@ -22,5 +22,5 @@ struct FPMASS_API FFPISMAnimation
 
 	bool IsValid() const;
 
-	const FAnimInfo& GetAnimInfo() const;
+	const FAnimToTextureAnimInfo& GetAnimInfo() const;
 };

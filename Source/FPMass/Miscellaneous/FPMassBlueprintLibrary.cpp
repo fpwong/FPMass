@@ -14,12 +14,12 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 		{
 			if (ISMParameters.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
 			{
-				FAnimInfo& AnimInfo = ISMParameters.AnimToTextureData->Animations[AnimIndex];
+				FAnimToTextureAnimInfo& AnimInfo = ISMParameters.AnimToTextureData->Animations[AnimIndex];
 
 				FFPISMAnimationState NewAnimation;
 				NewAnimation.AnimIndex = AnimIndex;
-				NewAnimation.NumFrames = AnimInfo.NumFrames;
-				NewAnimation.StartFrame = AnimInfo.AnimStart;
+				NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
+				NewAnimation.StartFrame = AnimInfo.StartFrame;
 				NewAnimation.AnimationCallbacks = AnimationCallbacks;
 
 				AnimState->CurrentMontage = NewAnimation;

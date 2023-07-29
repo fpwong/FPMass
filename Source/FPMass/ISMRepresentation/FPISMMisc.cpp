@@ -4,7 +4,7 @@
 
 #include "AnimToTextureDataAsset.h"
 
-const FAnimInfo& FFPISMAnimation::GetAnimInfo() const
+const FAnimToTextureAnimInfo& FFPISMAnimation::GetAnimInfo() const
 {
 	check(IsValid());
 	UAnimToTextureDataAsset* Data = AnimData.LoadSynchronous();

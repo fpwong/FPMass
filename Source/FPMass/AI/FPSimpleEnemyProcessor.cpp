@@ -32,7 +32,6 @@ void UFPSimpleEnemyProcessor::ConfigureQueries()
 
 	EntityQuery.AddRequirement<FFPAbilitySystemFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FFPTargetDataFragment>(EMassFragmentAccess::ReadWrite);
-	EntityQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FFPSimpleEnemyStateFragment>(EMassFragmentAccess::ReadWrite);
 
 	EntityQuery.AddConstSharedRequirement<FFPISMParameters>();
@@ -58,7 +57,6 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		const auto& AbilitySystemList = Context.GetFragmentView<FFPAbilitySystemFragment>();
 		const auto& TargetDataList = Context.GetMutableFragmentView<FFPTargetDataFragment>();
 		const auto& EnemyStateList = Context.GetMutableFragmentView<FFPSimpleEnemyStateFragment>();
-		const auto& AnimStateList = Context.GetMutableFragmentView<FFPISMAnimationFragment>();
 
 		const auto& EnemyParameters = Context.GetConstSharedFragment<FFPSimpleEnemyParameters>();
 		const auto& ISMParameters = Context.GetConstSharedFragment<FFPISMParameters>();
@@ -75,8 +73,6 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			FMassMoveTargetFragment& MoveToTarget = MoveToTargetFragments[i];
 			auto& AbilitySystem = AbilitySystemList[i].AbilitySystem;
 			FFPTargetDataFragment& TargetData = TargetDataList[i];
-
-			auto& AnimState = AnimStateList[i];
 
 			FVector TargetLocation = MoveToTarget.Center;
 
@@ -163,6 +159,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 								FMassEntityHandle Entity = Context.GetEntity(i);
 								FOnGameplayAbilityEnded::FDelegate OnAbilityEnded = FOnGameplayAbilityEnded::FDelegate::CreateLambda([EntityHandle = Entity](UGameplayAbility* Ability)
 								{
+									// UE_LOG(LogTemp, Warning, TEXT("Ability ended?"));
 									const FMassEntityManager& EntityManager = Ability->GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetEntityManager();
 									FMassEntityView EntityView(EntityManager, EntityHandle);
 

@@ -84,6 +84,8 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 
 			FVector Delta = Velocity * DeltaTime;
 
+			// UE_LOG(LogTemp, Warning, TEXT("%s %s %d"), *Force.ToCompactString(), *Velocity.ToCompactString(), (int)bIsInAir);
+
 			// perform the slide
 
 			Slide.Position = Transform.GetLocation();

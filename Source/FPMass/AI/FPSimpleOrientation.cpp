@@ -45,6 +45,9 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 			FTransform& CurrentTransform = LocationList[EntityIndex].GetMutableTransform();
 			auto& EnemyState = EnemyStateList[EntityIndex].State;
 
+			float InterpSpeed = 6.0f;
+
+			bool bTryLookAtTargetData = false;
 			TOptional<FVector> LookAtTarget;
 
 			switch (EnemyState)
@@ -53,25 +56,39 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 				{
 					// Snap position to move target directly
 					FVector Velocity = VelocityList[EntityIndex].Value;
-					if (Velocity.SizeSquared2D() >= 25 * 25)
+					float SpeedSquared = Velocity.SizeSquared2D();
+					if (SpeedSquared >= 300 * 300)
 					{
 						// UE_LOG(LogTemp, Warning, TEXT("Velocity %f"), Velocity.SizeSquared2D());
 						LookAtTarget = CurrentTransform.GetLocation() + VelocityList[EntityIndex].Value;
+
+						// float Speed = FMath::Sqrt(SpeedSquared);
+						// InterpSpeed = FMath::Clamp(Speed / 50.0f, 3.0f, 12.0f);
+					}
+					else
+					{
+						bTryLookAtTargetData = true;
 					}
 					break;
 				}
 				case EFPSimpleEnemyState::Idle:
 				case EFPSimpleEnemyState::Attacking: // rotate to target data
 				{
-					FGameplayAbilityTargetDataHandle& TargetData = TargetDataList[EntityIndex].TargetData;
-					FVector TargetLocation;
-					if (UFPGAGameplayAbilitiesLibrary::GetLocationFromTargetData(TargetData, 0, TargetLocation))
-					{
-						LookAtTarget = TargetLocation;
-					}
+					bTryLookAtTargetData = true;
+					InterpSpeed = 10.0f;
 					break;
 				}
 				default: ;
+			}
+
+			if (bTryLookAtTargetData)
+			{
+				FGameplayAbilityTargetDataHandle& TargetData = TargetDataList[EntityIndex].TargetData;
+				FVector TargetLocation;
+				if (UFPGAGameplayAbilitiesLibrary::GetLocationFromTargetData(TargetData, 0, TargetLocation))
+				{
+					LookAtTarget = TargetLocation;
+				}
 			}
 
 			if (LookAtTarget.IsSet())
@@ -80,7 +97,7 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 				FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(CurrentTransform.GetLocation(), LookAtTarget.GetValue());
 				NewRotation.Pitch = 0;
 				NewRotation.Roll = 0;
-				CurrentTransform.SetRotation(FMath::RInterpTo(CurrRotation, NewRotation, DeltaTime, 12.0f).Quaternion());
+				CurrentTransform.SetRotation(FMath::RInterpTo(CurrRotation, NewRotation, DeltaTime, InterpSpeed).Quaternion());
 			}
 		}
 	});
