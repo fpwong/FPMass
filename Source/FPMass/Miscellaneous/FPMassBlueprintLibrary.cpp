@@ -2,6 +2,7 @@
 
 #include "FPMassBlueprintLibrary.h"
 
+#include "FPAbilitySystemFragments.h"
 #include "Common/Misc/MSBPFunctionLibrary.h"
 #include "FPMass/ISMRepresentation/FPISMRepresentationFragments.h"
 
@@ -26,4 +27,14 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 			}
 		}
 	}
+}
+
+UAbilitySystemComponent* UFPMassBlueprintLibrary::GetAbilitySystemFromEntity(const FMSEntityViewBPWrapper EntityHandle)
+{
+	if (FFPAbilitySystemFragment* MassFragmentPtr = EntityHandle.EntityView.GetFragmentDataPtr<FFPAbilitySystemFragment>())
+	{
+		return MassFragmentPtr->AbilitySystem.Get();
+	}
+
+	return nullptr;
 }

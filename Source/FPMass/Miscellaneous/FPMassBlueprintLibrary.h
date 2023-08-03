@@ -6,6 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FPMassBlueprintLibrary.generated.h"
 
+struct FMSEntityViewBPWrapper;
 /**
  *
  */
@@ -14,6 +15,10 @@ class FPMASS_API UFPMassBlueprintLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
+public:
 	UFUNCTION(BlueprintCallable, Category = "FPMass", meta=(DisplayName="PlayISMAnimation"))
 	static void PlayISMAnimation(FMSEntityViewBPWrapper EntityHandle, int AnimIndex, FFPISMAnimationCallbacks AnimationCallbacks);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static UAbilitySystemComponent* GetAbilitySystemFromEntity(const FMSEntityViewBPWrapper EntityHandle);
 };

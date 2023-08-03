@@ -14,6 +14,7 @@ struct FPMASS_API FFPAbilitySystemFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
+	UPROPERTY()
 	TWeakObjectPtr<UAbilitySystemComponent> AbilitySystem;
 };
 
