@@ -160,13 +160,26 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 								FOnGameplayAbilityEnded::FDelegate OnAbilityEnded = FOnGameplayAbilityEnded::FDelegate::CreateLambda([EntityHandle = Entity](UGameplayAbility* Ability)
 								{
 									// UE_LOG(LogTemp, Warning, TEXT("Ability ended?"));
-									const FMassEntityManager& EntityManager = Ability->GetWorld()->GetSubsystem<UMassEntitySubsystem>()->GetEntityManager();
-									FMassEntityView EntityView(EntityManager, EntityHandle);
-
-									if (FFPSimpleEnemyStateFragment* LocalEnemyState = EntityView.GetFragmentDataPtr<FFPSimpleEnemyStateFragment>())
+									if (auto World = Ability->GetWorld())
 									{
-										// UE_LOG(LogTemp, Warning, TEXT("Finished gameplay ability!"));
-										LocalEnemyState->State = EFPSimpleEnemyState::Idle;
+										if (UMassEntitySubsystem* Subsystem = World->GetSubsystem<UMassEntitySubsystem>())
+										{
+											if (EntityHandle.IsValid())
+											{
+												const FMassEntityManager& EntityManager = Subsystem->GetEntityManager();
+												auto Archetype = EntityManager.GetArchetypeForEntity(EntityHandle);
+												if (Archetype.IsValid())
+												{
+													FMassEntityView EntityView(EntityManager, EntityHandle);
+
+													if (FFPSimpleEnemyStateFragment* LocalEnemyState = EntityView.GetFragmentDataPtr<FFPSimpleEnemyStateFragment>())
+													{
+														// UE_LOG(LogTemp, Warning, TEXT("Finished gameplay ability!"));
+														LocalEnemyState->State = EFPSimpleEnemyState::Idle;
+													}
+												}
+											}
+										}
 									}
 								});
 
