@@ -46,7 +46,7 @@ public:
 	ECollisionChannel Channel = ECC_Pawn;
 
 	// Advance Position/Remainder to the next impact
-	bool TryStep(const UWorld* World, FHitResult& Hit);
+	bool TryStep(const UWorld* World, FHitResult& Hit, bool bForce);
 
 	FVector PullBackMove(const FVector& Move);
 	FCollisionShape InflateShape(const FCollisionShape& InShape, float Amount);

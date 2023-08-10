@@ -14,6 +14,10 @@ UFPSlideMovementProcessor::UFPSlideMovementProcessor()
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
 	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Avoidance);
+
+#if FP_DRAW_DEBUG
+	bRequiresGameThreadExecution = true;
+#endif
 }
 
 void UFPSlideMovementProcessor::ConfigureQueries()
@@ -61,16 +65,25 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 
 			bool bIsInAir = false;
 
-			FHitResult GroundHit;
+			{
+				FVector GroundTraceStart = Transform.GetLocation();
+				GroundTraceStart.Z -= 1; 
 
-			if (World->SweepSingleByObjectType(GroundHit, Transform.GetLocation(), Transform.GetLocation() + FVector(0, 0, -1.5 * Radius), FQuat::Identity, ObjectParams, Slide.Shape))
-			{
-				float DistToGround = (GroundHit.Location - Transform.GetLocation()).Size();
-				bIsInAir = DistToGround >= Radius + 5.0f;
-			}
-			else
-			{
-				bIsInAir = true;
+				FVector GroundTraceEnd = Transform.GetLocation();
+
+				FHitResult GroundHit;
+				if (World->SweepSingleByObjectType(GroundHit, GroundTraceStart, GroundTraceEnd, FQuat::Identity, ObjectParams, Slide.Shape))
+				{
+					float DistToGround = GroundHit.Location.Z - Transform.GetLocation().Z;
+					bIsInAir = DistToGround > Radius;
+#if FP_DRAW_DEBUG
+					DrawDebugPoint(World, GroundHit.ImpactPoint, 4.0f, FColor::Red, false, 0.5f);
+#endif
+				}
+				else
+				{
+					bIsInAir = true;
+				}
 			}
 
 			if (bIsInAir)
@@ -83,6 +96,12 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			Velocity += Force * DeltaTime;
 
 			FVector Delta = Velocity * DeltaTime;
+#if FP_DRAW_DEBUG
+			if (bIsInAir)
+			{
+				DrawDebugString(Context.GetWorld(), Transform.GetLocation(), "FALL", nullptr, FColor::White, 0.0f);
+			}
+#endif
 
 			// UE_LOG(LogTemp, Warning, TEXT("%s %s %d"), *Force.ToCompactString(), *Velocity.ToCompactString(), (int)bIsInAir);
 
@@ -92,14 +111,19 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			Slide.Remainder = Delta;
 			Slide.QueryParams = FCollisionQueryParams(FName("SlideMovementProcessor"), false, nullptr);
 
+			bool bFailed = false;
+			
 			// cap out at three impacts
 			FHitResult Hit;
-			for (int It = 0; It < 3 && Slide.TryStep(World, Hit); ++It)
+			for (int It = 0; It < 3 && Slide.TryStep(World, Hit, false); ++It)
 			{
 				if (Hit.bStartPenetrating)
 				{
 					// TODO considering teleporting a bit above the ground to resolve collision if this happens often
 					UE_LOG(LogTemp, Error, TEXT("Entity is stuck!"));
+					Slide.Remainder = Delta;
+					Slide.TryStep(World, Hit, true); // force the result even if we fail!
+					bFailed = true;
 
 #if FP_DRAW_DEBUG
 					// Stuck! Draw a red warning sphere
@@ -111,13 +135,35 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 				{
 					// Impact! Draw the surface normal
 #if FP_DRAW_DEBUG
-					DrawDebugDirectionalArrow(World, Hit.ImpactPoint, Hit.ImpactPoint + 65.0f * Hit.Normal, 10.0f, FColor::Green, false, 0.5f);
+					// DrawDebugDirectionalArrow(World, Hit.ImpactPoint, Hit.ImpactPoint + 65.0f * Hit.Normal, 10.0f, FColor::Green, false, 0.5f);
 #endif
 				}
 			}
 
 			FVector OldLocation = Transform.GetLocation();
-			Transform.SetLocation(Slide.Position);
+
+			FVector NewLocation = Slide.Position;
+
+			if (bFailed) // if we fail, try to snap back onto the ground after doing our movement
+			{
+				FVector GroundTraceStart = NewLocation;
+				GroundTraceStart.Z = FMath::Max(NewLocation.Z, Transform.GetLocation().Z);
+			
+				FVector GroundTraceEnd = NewLocation;
+				GroundTraceEnd.Z = FMath::Min(NewLocation.Z, Transform.GetLocation().Z);
+
+				FHitResult GroundHit;
+				if (World->SweepSingleByObjectType(GroundHit, GroundTraceStart, GroundTraceEnd + Radius, FQuat::Identity, ObjectParams, Slide.Shape))
+				{
+					float DistToGround = (GroundHit.Location - Transform.GetLocation()).Size();
+					if (DistToGround <= Radius)
+					{
+						NewLocation.Z = GroundHit.Location.Z + Radius;
+					}
+				}
+			}
+
+			Transform.SetLocation(NewLocation);
 
 			// Recalc velocity (is this correct?)
 			Velocity = (Slide.Position - OldLocation) / DeltaTime;
@@ -129,7 +175,7 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 // FSlide
 // ==========
 
-bool FSlide::TryStep(const UWorld* World, FHitResult& Hit)
+bool FSlide::TryStep(const UWorld* World, FHitResult& Hit, bool bForce)
 {
 	// early out?
 	if (Remainder.IsNearlyZero(KINDA_SMALL_NUMBER))
@@ -147,9 +193,14 @@ bool FSlide::TryStep(const UWorld* World, FHitResult& Hit)
 	}
 
 	// stuck?
+	bool bStuck = false;
 	if (Hit.bStartPenetrating)
 	{
-		return true;
+		bStuck = true;
+		if (!bForce)
+		{
+			return true;
+		}
 	}
 
 	// update position
