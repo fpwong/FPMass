@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "FPISMRepresentationFragments.h"
 #include "MassRepresentationProcessor.h"
 #include "FPISMSubsystem.generated.h"
 
@@ -43,6 +44,7 @@ protected:
 
 public:
 	AFPISMActor* FindOrCreateISM(UStaticMesh* StaticMesh);
+	AFPISMActor* FindOrCreateISM(const FFPISMDescription& MeshDesc);
 
 	void OnProcessingPhaseStarted(const float DeltaSeconds, const EMassProcessingPhase Phase) const;
 

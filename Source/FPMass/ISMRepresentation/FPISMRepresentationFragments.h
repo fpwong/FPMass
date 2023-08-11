@@ -11,6 +11,7 @@ class AFPISMActor;
 class UAnimToTextureDataAsset;
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FFPOnISMAnimNotify, const FString&, Id);
+
 DECLARE_DYNAMIC_DELEGATE(FFPOnISMAnimEnded);
 
 USTRUCT(BlueprintType)
@@ -71,7 +72,6 @@ struct FPMASS_API FFPISMAnimationNotifyEventFragment : public FMassFragment
 	FFPOnISMAnimNotify OnAnimNotify;
 };
 
-
 USTRUCT(BlueprintType)
 struct FPMASS_API FFPISMStateFragment : public FMassFragment
 {
@@ -85,12 +85,61 @@ struct FPMASS_API FFPISMStateFragment : public FMassFragment
 };
 
 USTRUCT(BlueprintType)
+struct FPMASS_API FFPISMDescription
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimToTextureDataAsset* AnimToTextureData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<UMaterialInterface>> MaterialOverrides;
+
+	bool operator==(const FFPISMDescription& Other) const
+	{
+		return MaterialOverrides == Other.MaterialOverrides && AnimToTextureData == Other.AnimToTextureData;
+	}
+
+	friend FORCEINLINE uint32 GetTypeHash(const FFPISMDescription& Desc)
+	{
+		uint32 Hash = 0x0;
+		Hash = PointerHash(Desc.AnimToTextureData, Hash);
+		for (UMaterialInterface* MaterialOverride : Desc.MaterialOverrides)
+		{
+			if (MaterialOverride)
+			{
+				Hash = PointerHash(MaterialOverride, Hash);
+			}
+		}
+		return Hash;
+	}
+};
+
+USTRUCT(BlueprintType)
+struct FPMASS_API FFPISMRepresentationFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	// UPROPERTY(EditAnywhere)
+	// UAnimToTextureDataAsset* AnimToTextureData;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FFPISMDescription ISMDescription;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform RelativeTransform;
+};
+
+USTRUCT(BlueprintType)
 struct FPMASS_API FFPISMParameters : public FMassSharedFragment
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
 	UAnimToTextureDataAsset* AnimToTextureData;
+
+	UPROPERTY(EditAnywhere)
+	FFPISMDescription ISMDescription;
 
 	UPROPERTY(EditAnywhere)
 	FTransform RelativeTransform;

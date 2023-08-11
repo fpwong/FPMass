@@ -17,4 +17,10 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	FFPISMParameters ISMSharedParameters;
+
+	UPROPERTY(EditAnywhere)
+	FFPISMRepresentationFragment Representation;
+
+	UPROPERTY(EditAnywhere)
+	FTransform RelativeTransform;
 };

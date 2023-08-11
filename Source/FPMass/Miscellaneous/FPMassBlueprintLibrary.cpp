@@ -8,22 +8,25 @@
 
 void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHandle, int AnimIndex, FFPISMAnimationCallbacks AnimationCallbacks)
 {
-	const FFPISMParameters& ISMParameters = EntityHandle.EntityView.GetConstSharedFragmentData<FFPISMParameters>();
-	if (FFPISMAnimationFragment* AnimState = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMAnimationFragment>())
+	// const FFPISMParameters& ISMParameters = EntityHandle.EntityView.GetConstSharedFragmentData<FFPISMParameters>();
+	if (const FFPISMRepresentationFragment* Representation = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
 	{
-		if (ISMParameters.AnimToTextureData)
+		if (FFPISMAnimationFragment* AnimState = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMAnimationFragment>())
 		{
-			if (ISMParameters.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
+			if (Representation->ISMDescription.AnimToTextureData)
 			{
-				FAnimToTextureAnimInfo& AnimInfo = ISMParameters.AnimToTextureData->Animations[AnimIndex];
+				if (Representation->ISMDescription.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
+				{
+					FAnimToTextureAnimInfo& AnimInfo = Representation->ISMDescription.AnimToTextureData->Animations[AnimIndex];
 
-				FFPISMAnimationState NewAnimation;
-				NewAnimation.AnimIndex = AnimIndex;
-				NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
-				NewAnimation.StartFrame = AnimInfo.StartFrame;
-				NewAnimation.AnimationCallbacks = AnimationCallbacks;
+					FFPISMAnimationState NewAnimation;
+					NewAnimation.AnimIndex = AnimIndex;
+					NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
+					NewAnimation.StartFrame = AnimInfo.StartFrame;
+					NewAnimation.AnimationCallbacks = AnimationCallbacks;
 
-				AnimState->CurrentMontage = NewAnimation;
+					AnimState->CurrentMontage = NewAnimation;
+				}
 			}
 		}
 	}
@@ -37,4 +40,32 @@ UAbilitySystemComponent* UFPMassBlueprintLibrary::GetAbilitySystemFromEntity(con
 	}
 
 	return nullptr;
+}
+
+bool UFPMassBlueprintLibrary::SetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle, FFPISMRepresentationFragment Representation)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return false;
+	}
+
+	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		*RepresentationFrag = Representation;
+	}
+
+	return true;
+}
+
+FFPISMRepresentationFragment UFPMassBlueprintLibrary::GetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle)
+{
+	if (EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+		{
+			return *RepresentationFrag;
+		}
+	}
+
+	return FFPISMRepresentationFragment();
 }

@@ -10,5 +10,7 @@ AFPISMActor::AFPISMActor()
 	InstancedStaticMesh->NumCustomDataFloats = 6;
 	InstancedStaticMesh->SetGenerateOverlapEvents(false);
 	InstancedStaticMesh->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	InstancedStaticMesh->SetCanEverAffectNavigation(false);
+	InstancedStaticMesh->SetReceivesDecals(false);
 	SetRootComponent(InstancedStaticMesh);
 }

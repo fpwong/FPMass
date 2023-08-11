@@ -48,6 +48,39 @@ AFPISMActor* UFPISMSubsystem::FindOrCreateISM(UStaticMesh* StaticMesh)
 	return nullptr;
 }
 
+AFPISMActor* UFPISMSubsystem::FindOrCreateISM(const FFPISMDescription& Desc)
+{
+	check(Desc.AnimToTextureData);
+
+	UStaticMesh* Mesh = Desc.AnimToTextureData->GetStaticMesh();
+	check(Mesh);
+
+	const uint32 Hash = GetTypeHash(Desc);
+	if (ISMActors.Contains(Hash))
+	{
+		return ISMActors[Hash];
+	}
+
+	if (AFPISMActor* Actor = GetWorld()->SpawnActor<AFPISMActor>())
+	{
+		// UE_LOG(LogTemp, Warning, TEXT("Spawned ISMActor"));
+		Actor->InstancedStaticMesh->SetStaticMesh(Mesh);
+
+		for (int32 ElementIndex = 0; ElementIndex < Desc.MaterialOverrides.Num(); ++ElementIndex)
+		{
+			if (UMaterialInterface* MaterialOverride = Desc.MaterialOverrides[ElementIndex])
+			{
+				Actor->InstancedStaticMesh->SetMaterial(ElementIndex, MaterialOverride);
+			}
+		}
+
+		ISMActors.Add(Hash, Actor);
+		return Actor;
+	}
+
+	return nullptr;
+}
+
 void UFPISMSubsystem::OnProcessingPhaseStarted(const float DeltaSeconds, const EMassProcessingPhase Phase) const
 {
 	switch (Phase)

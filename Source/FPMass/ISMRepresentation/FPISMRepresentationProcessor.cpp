@@ -23,6 +23,7 @@ void UFPISMRepresentationProcessors::ConfigureQueries()
 {
 	PositionToNiagaraFragmentQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadOnly);
+	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMRepresentationFragment>(EMassFragmentAccess::ReadOnly);
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMStateFragment>(EMassFragmentAccess::ReadWrite);
 	PositionToNiagaraFragmentQuery.AddConstSharedRequirement<FFPISMParameters>();
 	PositionToNiagaraFragmentQuery.RegisterWithProcessor(*this);
@@ -39,33 +40,40 @@ void UFPISMRepresentationProcessors::Execute(FMassEntityManager& EntityManager, 
 
 		const auto& TransformList = Context.GetFragmentView<FTransformFragment>();
 		const auto& AnimationList = Context.GetFragmentView<FFPISMAnimationFragment>();
+		const auto& RepresentationList = Context.GetFragmentView<FFPISMRepresentationFragment>();
 		const auto& InstanceIdList = Context.GetMutableFragmentView<FFPISMStateFragment>();
 
-		const auto& ISMSharedFragment = Context.GetConstSharedFragment<FFPISMParameters>();
+		// const auto& ISMSharedFragment = Context.GetConstSharedFragment<FFPISMParameters>();
 
 		if (UFPISMSubsystem* ISMSubsystem = Context.GetWorld()->GetSubsystem<UFPISMSubsystem>())
 		{
-			if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(ISMSharedFragment.AnimToTextureData->StaticMesh.LoadSynchronous()))
+			// if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(ISMSharedFragment.ISMDescription))
 			{
 				for (int i = 0; i < NumEntities; ++i)
 				{
-					FFPISMStateFragment& InstanceId = InstanceIdList[i];
+					const auto& Representation = RepresentationList[i];
 
-					FTransform Transform = ISMSharedFragment.RelativeTransform * TransformList[i].GetTransform();
+					if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(Representation.ISMDescription))
+					{
+						FFPISMStateFragment& InstanceId = InstanceIdList[i];
 
-					const FFPISMAnimationFragment& Anim = AnimationList[i];
+						FTransform Transform = Representation.RelativeTransform * TransformList[i].GetTransform();
+						// FTransform Transform = ISMSharedFragment.RelativeTransform * TransformList[i].GetTransform();
 
-					uint32 EntityId = GetTypeHash(Context.GetEntity(i));
+						const FFPISMAnimationFragment& Anim = AnimationList[i];
 
-					ISMActor->SharedData.UpdateInstanceIds.Add(EntityId);
-					ISMActor->SharedData.StaticMeshInstanceTransforms.Add(Transform);
-					ISMActor->SharedData.StaticMeshInstancePrevTransforms.Add(InstanceId.PrevTransform);
+						uint32 EntityId = GetTypeHash(Context.GetEntity(i));
 
-					auto CustomData = Anim.AsCustomData();
-					// UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
-					ISMActor->SharedData.StaticMeshInstanceCustomFloats.Append(CustomData);
+						ISMActor->SharedData.UpdateInstanceIds.Add(EntityId);
+						ISMActor->SharedData.StaticMeshInstanceTransforms.Add(Transform);
+						ISMActor->SharedData.StaticMeshInstancePrevTransforms.Add(InstanceId.PrevTransform);
 
-					InstanceId.PrevTransform = Transform;
+						auto CustomData = Anim.AsCustomData();
+						// UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
+						ISMActor->SharedData.StaticMeshInstanceCustomFloats.Append(CustomData);
+
+						InstanceId.PrevTransform = Transform;
+					}
 				}
 			}
 		}

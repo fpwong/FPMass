@@ -40,4 +40,7 @@ void UFPISMRepresentationTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
 
 	BuildContext.AddFragment<FFPISMStateFragment>();
 	BuildContext.AddFragment<FFPISMAnimationFragment>();
+
+	FFPISMRepresentationFragment& RepFrag = BuildContext.AddFragment_GetRef<FFPISMRepresentationFragment>();
+	RepFrag = Representation;
 }

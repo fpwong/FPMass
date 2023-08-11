@@ -6,7 +6,9 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FPMassBlueprintLibrary.generated.h"
 
+class UAbilitySystemComponent;
 struct FMSEntityViewBPWrapper;
+struct FFPISMRepresentationFragment;
 /**
  *
  */
@@ -21,4 +23,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static UAbilitySystemComponent* GetAbilitySystemFromEntity(const FMSEntityViewBPWrapper EntityHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool SetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle, FFPISMRepresentationFragment Representation);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static FFPISMRepresentationFragment GetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle);
 };

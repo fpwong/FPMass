@@ -24,6 +24,7 @@ void UFPISMAnimationProcessors::ConfigureQueries()
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFPISMRepresentationFragment>(EMassFragmentAccess::ReadOnly);
 
 	EntityQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadWrite);
 
@@ -39,19 +40,22 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 		const int32 NumEntities = Context.GetNumEntities();
 
 		const auto& VelocityList = Context.GetFragmentView<FMassVelocityFragment>();
+		const auto& RepresentationList = Context.GetFragmentView<FFPISMRepresentationFragment>();
+
 		const auto& AnimationList = Context.GetMutableFragmentView<FFPISMAnimationFragment>();
 
-		const auto& ISMParameters = Context.GetConstSharedFragment<FFPISMParameters>();
+		// const auto& ISMParameters = Context.GetConstSharedFragment<FFPISMParameters>();
 
 		const float DeltaTime = Context.GetWorld()->DeltaTimeSeconds;
 
-		UFPAnimToTextureDataAsset* FPAnimToData = Cast<UFPAnimToTextureDataAsset>(ISMParameters.AnimToTextureData);
+		// UFPAnimToTextureDataAsset* FPAnimToData = Cast<UFPAnimToTextureDataAsset>(ISMParameters.AnimToTextureData);
 
 		for (int i = 0; i < NumEntities; ++i)
 		{
 			// const auto& Transform = TransformList[i].GetTransform();
 			const auto& Velocity = VelocityList[i].Value;
 			FFPISMAnimationFragment& AnimationState = AnimationList[i];
+			const auto& Representation = RepresentationList[i];
 
 			float MaxSpeed = 400.0f;
 			float TargetWalkBlend = FMath::Clamp(Velocity.SizeSquared2D() / (MaxSpeed * MaxSpeed), 0.0, 1.0);
@@ -73,7 +77,7 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 
 				float NewFrame = Animation.CurrentFrame + Delta;
 
-				if (FPAnimToData)
+				if (auto FPAnimToData = Cast<UFPAnimToTextureDataAsset>(Representation.ISMDescription.AnimToTextureData))
 				{
 					const uint8& AnimIndex = Animation.AnimIndex;
 					if (FPAnimToData->AnimNotifyInfo.IsValidIndex(AnimIndex))
