@@ -2,6 +2,7 @@
 
 #include "FPProjectileProcessors.h"
 
+#include "FPProjectileEvents.h"
 #include "FPProjectileFragments.h"
 #include "MassCommonFragments.h"
 #include "MassExecutionContext.h"
@@ -23,7 +24,7 @@ void UFPProjectileProcessors::ConfigureQueries()
 	LineTraceFromPreviousPosition.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	LineTraceFromPreviousPosition.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 
-	LineTraceFromPreviousPosition.AddConstSharedRequirement<FMSProjectileEventsFragment>();
+	LineTraceFromPreviousPosition.AddConstSharedRequirement<FFPProjectileEventsFragment>();
 	LineTraceFromPreviousPosition.AddConstSharedRequirement<FFPProjectileCollisionParameters>();
 
 	LineTraceFromPreviousPosition.AddTagRequirement<FFPMassTag_Projectile>(EMassFragmentPresence::All);
@@ -42,7 +43,7 @@ void UFPProjectileProcessors::Execute(FMassEntityManager& EntityManager, FMassEx
 		TConstArrayView<FTransformFragment> Transforms = Context.GetFragmentView<FTransformFragment>();
 
 		const FFPProjectileCollisionParameters& CollisionParams = Context.GetConstSharedFragment<FFPProjectileCollisionParameters>();
-		const FMSProjectileEventsFragment& ProjectileEvents = Context.GetConstSharedFragment<FMSProjectileEventsFragment>();
+		const FFPProjectileEventsFragment& ProjectileEvents = Context.GetConstSharedFragment<FFPProjectileEventsFragment>();
 
 		int32 NumEntities = Context.GetNumEntities();
 

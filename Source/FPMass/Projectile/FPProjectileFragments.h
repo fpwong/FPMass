@@ -9,6 +9,8 @@
 #include "UObject/Object.h"
 #include "FPProjectileFragments.generated.h"
 
+class UFPProjectileEvents;
+
 USTRUCT()
 struct FFPMassTag_Projectile : public FMassTag
 {
@@ -32,6 +34,15 @@ struct FPMASS_API FFPProjectileCollisionParameters : public FMassSharedFragment
 	TEnumAsByte<ECollisionChannel> Channel = ECC_Camera;
 };
 
+USTRUCT(BlueprintType)
+struct FPMASS_API FFPProjectileEventsFragment : public FMassSharedFragment
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UFPProjectileEvents> ProjectileEvents;
+};
+
 UCLASS(meta = (DisplayName = "Pojectile Simulation"))
 class FPMASS_API UFPProjectileTrait : public UMassEntityTraitBase
 {
@@ -53,5 +64,5 @@ public:
 	FFPProjectileCollisionParameters CollisionParameters;
 
 	UPROPERTY(EditAnywhere, meta=(ShowOnlyInnerProperties))
-	FMSProjectileEventsFragment ProjectileEvents;
+	FFPProjectileEventsFragment ProjectileEvents;
 };
