@@ -50,10 +50,13 @@ AFPISMActor* UFPISMSubsystem::FindOrCreateISM(UStaticMesh* StaticMesh)
 
 AFPISMActor* UFPISMSubsystem::FindOrCreateISM(const FFPISMDescription& Desc)
 {
-	check(Desc.AnimToTextureData);
+	if (!Desc.AnimToTextureData || !Desc.AnimToTextureData->GetStaticMesh())
+	{
+		UE_LOG(LogTemp, Error, TEXT("No anim to texture data"));
+		return nullptr;
+	}
 
 	UStaticMesh* Mesh = Desc.AnimToTextureData->GetStaticMesh();
-	check(Mesh);
 
 	const uint32 Hash = GetTypeHash(Desc);
 	if (ISMActors.Contains(Hash))
