@@ -29,4 +29,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static FFPISMRepresentationFragment GetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool SetEntityMaxSpeed(const FMSEntityViewBPWrapper EntityHandle, float NewSpeed);
 };

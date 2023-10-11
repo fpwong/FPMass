@@ -56,3 +56,11 @@ private:
 	FVector PrevNormal = FVector(0.0f);
 	TArray<FHitResult> Hits;
 };
+
+USTRUCT(BlueprintType)
+struct FPMASS_API FFPSimpleMovementFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	float MaxSpeed = 1000.0f;
+};

@@ -25,6 +25,7 @@ void UFPSlideMovementProcessor::ConfigureQueries()
 	MovementEntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	MovementEntityQuery.AddRequirement<FMassForceFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
+	MovementEntityQuery.AddRequirement<FFPSimpleMovementFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
 	MovementEntityQuery.RegisterWithProcessor(*this);
 }
@@ -42,6 +43,7 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 		const int32 NumEntities = Context.GetNumEntities();
 
 		const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
+		const TArrayView<FFPSimpleMovementFragment> SimpleMovementList = Context.GetMutableFragmentView<FFPSimpleMovementFragment>();
 		const TConstArrayView<FMassForceFragment> ForceList = Context.GetFragmentView<FMassForceFragment>();
 		const TConstArrayView<FAgentRadiusFragment> RadiusList = Context.GetFragmentView<FAgentRadiusFragment>();
 		const TArrayView<FMassVelocityFragment> VelocityList = Context.GetMutableFragmentView<FMassVelocityFragment>();
@@ -62,6 +64,8 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 
 			FSlide Slide;
 			Slide.Shape = FCollisionShape::MakeSphere(Radius);
+
+			float MaxSpeed = SimpleMovementList[EntityIndex].MaxSpeed;
 
 			bool bIsInAir = false;
 
@@ -95,6 +99,13 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			FVector& Velocity = VelocityList[EntityIndex].Value;
 			Velocity += Force * DeltaTime;
 
+			FVector2D XYVelocity = FVector2D(Velocity);
+			if (XYVelocity.SquaredLength() >= MaxSpeed * MaxSpeed)
+			{
+				XYVelocity = XYVelocity.GetSafeNormal() * MaxSpeed;
+				Velocity = FVector(XYVelocity, Velocity.Z);
+			}
+
 			FVector Delta = Velocity * DeltaTime;
 #if FP_DRAW_DEBUG
 			if (bIsInAir)
@@ -120,7 +131,7 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 				if (Hit.bStartPenetrating)
 				{
 					// TODO considering teleporting a bit above the ground to resolve collision if this happens often
-					UE_LOG(LogTemp, Error, TEXT("Entity is stuck!"));
+					// UE_LOG(LogTemp, Error, TEXT("Entity is stuck!"));
 					Slide.Remainder = Delta;
 					Slide.TryStep(World, Hit, true); // force the result even if we fail!
 					bFailed = true;

@@ -3,6 +3,7 @@
 #include "FPMassBlueprintLibrary.h"
 
 #include "FPAbilitySystemFragments.h"
+#include "FPSlideMovementProcessor.h"
 #include "Common/Misc/MSBPFunctionLibrary.h"
 #include "FPMass/ISMRepresentation/FPISMRepresentationFragments.h"
 
@@ -68,4 +69,19 @@ FFPISMRepresentationFragment UFPMassBlueprintLibrary::GetEntityISMRepresentation
 	}
 
 	return FFPISMRepresentationFragment();
+}
+
+bool UFPMassBlueprintLibrary::SetEntityMaxSpeed(const FMSEntityViewBPWrapper EntityHandle, float NewSpeed)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return false;
+	}
+
+	if (FFPSimpleMovementFragment* MovementFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPSimpleMovementFragment>())
+	{
+		MovementFrag->MaxSpeed = NewSpeed;
+	}
+
+	return true;
 }
