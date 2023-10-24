@@ -92,7 +92,8 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 					APawn* PlayerPawn = PC->GetPawnOrSpectator();
 					if (PlayerPawn)
 					{
-						if ((PlayerPawn->GetActorLocation() - Transform.GetLocation()).SizeSquared2D() <= 5000 * 5000)
+						// ENABLE this check if you want to make the mobs have an aggro range
+						// if ((PlayerPawn->GetActorLocation() - Transform.GetLocation()).SizeSquared2D() <= 5000 * 5000)
 						{
 							TargetData.TargetData = UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(PlayerPawn);
 							TargetActor = PlayerPawn;
