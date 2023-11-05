@@ -15,12 +15,9 @@ class FPMASS_API UFPISMRepresentationTrait : public UMassEntityTraitBase
 public:
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 
-	UPROPERTY(EditAnywhere)
-	FFPISMParameters ISMSharedParameters;
+	// UPROPERTY(EditAnywhere)
+	// FFPISMParameters ISMSharedParameters;
 
 	UPROPERTY(EditAnywhere)
 	FFPISMRepresentationFragment Representation;
-
-	UPROPERTY(EditAnywhere)
-	FTransform RelativeTransform;
 };

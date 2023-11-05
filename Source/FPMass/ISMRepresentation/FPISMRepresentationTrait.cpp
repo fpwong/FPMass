@@ -33,8 +33,8 @@ void UFPISMRepresentationTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
 
 	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
 
-	const FConstSharedStruct& ISMParameters = EntityManager.GetOrCreateConstSharedFragment(ISMSharedParameters);
-	BuildContext.AddConstSharedFragment(ISMParameters);
+	// const FConstSharedStruct& ISMParameters = EntityManager.GetOrCreateConstSharedFragment(ISMSharedParameters);
+	// BuildContext.AddConstSharedFragment(ISMParameters);
 
 	BuildContext.RequireFragment<FTransformFragment>();
 

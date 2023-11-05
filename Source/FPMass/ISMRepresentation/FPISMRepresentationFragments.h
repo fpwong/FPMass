@@ -90,10 +90,18 @@ struct FPMASS_API FFPISMDescription
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UAnimToTextureDataAsset* AnimToTextureData;
+	UAnimToTextureDataAsset* AnimToTextureData = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<UMaterialInterface>> MaterialOverrides;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform RelativeTransform;
+
+	FFPISMDescription()
+	{
+		RelativeTransform = FTransform(FRotator(0, -90, 0), FVector(0, 0, -100));
+	}
 
 	bool operator==(const FFPISMDescription& Other) const
 	{
@@ -120,27 +128,18 @@ struct FPMASS_API FFPISMRepresentationFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
-	// UPROPERTY(EditAnywhere)
-	// UAnimToTextureDataAsset* AnimToTextureData;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FFPISMDescription ISMDescription;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FTransform RelativeTransform;
 };
 
-USTRUCT(BlueprintType)
-struct FPMASS_API FFPISMParameters : public FMassSharedFragment
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	UAnimToTextureDataAsset* AnimToTextureData;
-
-	UPROPERTY(EditAnywhere)
-	FFPISMDescription ISMDescription;
-
-	UPROPERTY(EditAnywhere)
-	FTransform RelativeTransform;
-};
+// USTRUCT(BlueprintType)
+// struct FPMASS_API FFPISMParameters : public FMassSharedFragment
+// {
+// 	GENERATED_BODY()
+//
+// 	UPROPERTY(EditAnywhere)
+// 	FFPISMDescription ISMDescription;
+//
+// 	UPROPERTY(EditAnywhere)
+// 	FTransform RelativeTransform;
+// };

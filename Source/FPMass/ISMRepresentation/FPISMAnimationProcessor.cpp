@@ -28,7 +28,7 @@ void UFPISMAnimationProcessors::ConfigureQueries()
 
 	EntityQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadWrite);
 
-	EntityQuery.AddConstSharedRequirement<FFPISMParameters>();
+	// EntityQuery.AddConstSharedRequirement<FFPISMParameters>();
 }
 
 void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

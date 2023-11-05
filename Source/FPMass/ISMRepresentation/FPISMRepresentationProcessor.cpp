@@ -25,7 +25,7 @@ void UFPISMRepresentationProcessors::ConfigureQueries()
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadOnly);
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMRepresentationFragment>(EMassFragmentAccess::ReadOnly);
 	PositionToNiagaraFragmentQuery.AddRequirement<FFPISMStateFragment>(EMassFragmentAccess::ReadWrite);
-	PositionToNiagaraFragmentQuery.AddConstSharedRequirement<FFPISMParameters>();
+	// PositionToNiagaraFragmentQuery.AddConstSharedRequirement<FFPISMParameters>();
 	PositionToNiagaraFragmentQuery.RegisterWithProcessor(*this);
 }
 
@@ -57,7 +57,7 @@ void UFPISMRepresentationProcessors::Execute(FMassEntityManager& EntityManager, 
 					{
 						FFPISMStateFragment& InstanceId = InstanceIdList[i];
 
-						FTransform Transform = Representation.RelativeTransform * TransformList[i].GetTransform();
+						FTransform Transform = Representation.ISMDescription.RelativeTransform * TransformList[i].GetTransform();
 						// FTransform Transform = ISMSharedFragment.RelativeTransform * TransformList[i].GetTransform();
 
 						const FFPISMAnimationFragment& Anim = AnimationList[i];
