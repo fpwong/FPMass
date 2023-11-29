@@ -76,8 +76,6 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 
 			FVector TargetLocation = MoveToTarget.Center;
 
-			FVector ToTarget = MoveToTarget.Center - Transform.GetLocation();
-
 			AActor* TargetActor = nullptr;
 
 			// read target data
@@ -110,6 +108,8 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			{
 				UFPGAGameplayAbilitiesLibrary::GetLocationFromTargetData(TargetData.TargetData, 0, TargetLocation);
 			}
+
+			FVector ToTarget = TargetLocation - Transform.GetLocation();
 
 			switch (EnemyState.State)
 			{
@@ -154,6 +154,9 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 							// run ability if we have a target
 							if (IsValid(EnemyParameters.AttackAbility) && AbilitySystem.IsValid())
 							{
+								// DrawDebugSphere(Context.GetWorld(), Transform.GetLocation(), 100.0f, 32, FColor::Red, true, 2.0f);
+								// UE_LOG(LogTemp, Warning, TEXT("%s %s"), *Transform.GetLocation().ToCompactString(), *MoveToTarget.Center.ToCompactString());
+
 								FGameplayEventData EventData;
 								EventData.TargetData = TargetData.TargetData;
 
