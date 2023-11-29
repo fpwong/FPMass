@@ -169,7 +169,7 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 					float DistToGround = (GroundHit.Location - Transform.GetLocation()).Size();
 					if (DistToGround <= Radius)
 					{
-						NewLocation.Z = GroundHit.Location.Z + Radius;
+						NewLocation.Z = GroundHit.Location.Z + Radius + 10.0f;
 					}
 				}
 			}
