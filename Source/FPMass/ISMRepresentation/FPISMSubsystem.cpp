@@ -50,9 +50,15 @@ AFPISMActor* UFPISMSubsystem::FindOrCreateISM(UStaticMesh* StaticMesh)
 
 AFPISMActor* UFPISMSubsystem::FindOrCreateISM(const FFPISMDescription& Desc)
 {
-	if (!Desc.AnimToTextureData || !Desc.AnimToTextureData->GetStaticMesh())
+	if (!Desc.AnimToTextureData)
 	{
-		UE_LOG(LogTemp, Error, TEXT("No anim to texture data"));
+		UE_LOG(LogTemp, Error, TEXT("No Anim To Texture Data"));
+		return nullptr;
+	}
+
+	if (!Desc.AnimToTextureData->GetStaticMesh())
+	{
+		UE_LOG(LogTemp, Error, TEXT("No static mesh set for %s"), *Desc.AnimToTextureData->GetName());
 		return nullptr;
 	}
 
