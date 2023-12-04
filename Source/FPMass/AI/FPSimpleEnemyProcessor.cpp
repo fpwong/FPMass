@@ -147,7 +147,8 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case EFPSimpleEnemyState::Moving:
 				{
 					// when we reach the target
-					if (MoveToTarget.Center.IsZero() || ToTarget.SizeSquared2D() <= 350 * 350)
+					float AttackRange = 250.f; // TODO read from ability system
+					if (MoveToTarget.Center.IsZero() || ToTarget.SizeSquared2D() <= AttackRange * AttackRange)
 					{
 						if (TargetActor)
 						{
