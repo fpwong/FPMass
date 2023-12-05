@@ -56,13 +56,17 @@ AFPISMActor* UFPISMSubsystem::FindOrCreateISM(const FFPISMDescription& Desc)
 		return nullptr;
 	}
 
-	if (!Desc.AnimToTextureData->GetStaticMesh())
+	if (Desc.AnimToTextureData->StaticMesh.IsNull())
 	{
 		UE_LOG(LogTemp, Error, TEXT("No static mesh set for %s"), *Desc.AnimToTextureData->GetName());
 		return nullptr;
 	}
 
-	UStaticMesh* Mesh = Desc.AnimToTextureData->GetStaticMesh();
+	UStaticMesh* Mesh = Desc.AnimToTextureData->StaticMesh.LoadSynchronous();
+	if (!Mesh)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Mesh failed to load??? %s"), *Desc.AnimToTextureData->StaticMesh.ToString());
+	}
 
 	const uint32 Hash = GetTypeHash(Desc);
 	if (ISMActors.Contains(Hash))
