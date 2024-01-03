@@ -78,7 +78,7 @@ struct FPMASS_API FFPISMStateFragment : public FMassFragment
 	GENERATED_BODY()
 
 	UPROPERTY()
-	int InstanceId;
+	int InstanceId = INDEX_NONE;
 
 	UPROPERTY()
 	FTransform PrevTransform;
@@ -98,9 +98,14 @@ struct FPMASS_API FFPISMDescription
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform RelativeTransform;
 
+	UPROPERTY(Transient)
+	FGuid Guid;
+
 	FFPISMDescription()
 	{
-		RelativeTransform = FTransform(FRotator(0, -90, 0), FVector(0, 0, -100));
+		// RelativeTransform = FTransform(FRotator(0, -90, 0), FVector(0, 0, -100));
+		RelativeTransform = FTransform::Identity;
+		Guid = FGuid::NewGuid();
 	}
 
 	bool operator==(const FFPISMDescription& Other) const
@@ -129,7 +134,18 @@ struct FPMASS_API FFPISMRepresentationFragment : public FMassFragment
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform RelativeTransform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<FFPISMDescription> ISMDescriptions;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FFPISMDescription ISMDescription;
+
+	FFPISMRepresentationFragment()
+	{
+		RelativeTransform = FTransform(FRotator(0, -90, 0), FVector(0, 0, -100));
+	}
 };
 
 // USTRUCT(BlueprintType)

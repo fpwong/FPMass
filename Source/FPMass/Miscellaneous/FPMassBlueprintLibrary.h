@@ -9,6 +9,8 @@
 class UAbilitySystemComponent;
 struct FMSEntityViewBPWrapper;
 struct FFPISMRepresentationFragment;
+struct FFPISMDescription;
+
 /**
  *
  */
@@ -28,7 +30,19 @@ public:
 	static bool SetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle, FFPISMRepresentationFragment Representation);
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static FGuid AddEntityISMDescription(const FMSEntityViewBPWrapper EntityHandle, FFPISMDescription Description);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool RemoveEntityISMDescription(const FMSEntityViewBPWrapper EntityHandle, FGuid Guid);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool SetEntityISMScale(const FMSEntityViewBPWrapper EntityHandle, FVector Scale = FVector(1, 1, 1));
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static FFPISMRepresentationFragment GetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static FFPISMDescription GetEntityMainISMDescription(const FMSEntityViewBPWrapper EntityHandle);
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static bool SetEntityMaxSpeed(const FMSEntityViewBPWrapper EntityHandle, float NewSpeed);

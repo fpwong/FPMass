@@ -38,7 +38,7 @@ AFPISMActor* UFPISMSubsystem::FindOrCreateISM(UStaticMesh* StaticMesh)
 
 		if (AFPISMActor* Actor = GetWorld()->SpawnActor<AFPISMActor>())
 		{
-			// UE_LOG(LogTemp, Warning, TEXT("Spawned ISMActor"));
+			// UE_LOG(LogTemp, Warning, TEXT("Spawned ISMActor for %s %d"), *StaticMesh->GetName(), StaticMesh->GetUniqueID());
 			Actor->InstancedStaticMesh->SetStaticMesh(StaticMesh);
 			ISMActors.Add(MeshId, Actor);
 			return Actor;
@@ -79,12 +79,19 @@ AFPISMActor* UFPISMSubsystem::FindOrCreateISM(const FFPISMDescription& Desc)
 		// UE_LOG(LogTemp, Warning, TEXT("Spawned ISMActor"));
 		Actor->InstancedStaticMesh->SetStaticMesh(Mesh);
 
+		// UE_LOG(LogTemp, Warning, TEXT("Spawned ISMActor for %s %d %d"), *Desc.AnimToTextureData->GetName(), Hash, Desc.MaterialOverrides.Num());
 		for (int32 ElementIndex = 0; ElementIndex < Desc.MaterialOverrides.Num(); ++ElementIndex)
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("\twtf"));
 			if (UMaterialInterface* MaterialOverride = Desc.MaterialOverrides[ElementIndex])
 			{
+				// UE_LOG(LogTemp, Warning, TEXT("\tMat override? %s"), *MaterialOverride->GetName());
 				Actor->InstancedStaticMesh->SetMaterial(ElementIndex, MaterialOverride);
 			}
+			// else
+			// {
+			// 	UE_LOG(LogTemp, Warning, TEXT("\tInvalid index %d"), ElementIndex);
+			// }
 		}
 
 		ISMActors.Add(Hash, Actor);

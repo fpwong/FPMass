@@ -14,19 +14,22 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 	{
 		if (FFPISMAnimationFragment* AnimState = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMAnimationFragment>())
 		{
-			if (Representation->ISMDescription.AnimToTextureData)
+			for (const auto& ISMDesc : Representation->ISMDescriptions)
 			{
-				if (Representation->ISMDescription.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
+				if (ISMDesc.AnimToTextureData)
 				{
-					FAnimToTextureAnimInfo& AnimInfo = Representation->ISMDescription.AnimToTextureData->Animations[AnimIndex];
+					if (ISMDesc.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
+					{
+						FAnimToTextureAnimInfo& AnimInfo = ISMDesc.AnimToTextureData->Animations[AnimIndex];
 
-					FFPISMAnimationState NewAnimation;
-					NewAnimation.AnimIndex = AnimIndex;
-					NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
-					NewAnimation.StartFrame = AnimInfo.StartFrame;
-					NewAnimation.AnimationCallbacks = AnimationCallbacks;
+						FFPISMAnimationState NewAnimation;
+						NewAnimation.AnimIndex = AnimIndex;
+						NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
+						NewAnimation.StartFrame = AnimInfo.StartFrame;
+						NewAnimation.AnimationCallbacks = AnimationCallbacks;
 
-					AnimState->CurrentMontage = NewAnimation;
+						AnimState->CurrentMontage = NewAnimation;
+					}
 				}
 			}
 		}
@@ -58,6 +61,61 @@ bool UFPMassBlueprintLibrary::SetEntityISMRepresentation(const FMSEntityViewBPWr
 	return true;
 }
 
+FGuid UFPMassBlueprintLibrary::AddEntityISMDescription(const FMSEntityViewBPWrapper EntityHandle, FFPISMDescription Description)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return FGuid();
+	}
+
+	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		RepresentationFrag->ISMDescriptions.Add(Description);
+		return Description.Guid; 
+	}
+
+	return FGuid();
+}
+
+bool UFPMassBlueprintLibrary::RemoveEntityISMDescription(const FMSEntityViewBPWrapper EntityHandle, FGuid Guid)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return false;
+	}
+
+	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		int Index = RepresentationFrag->ISMDescriptions.IndexOfByPredicate([&Guid](const FFPISMDescription& Desc)
+		{
+			return Desc.Guid == Guid;
+		});
+
+		if (Index >= 0)
+		{
+			RepresentationFrag->ISMDescriptions.RemoveAt(Index);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UFPMassBlueprintLibrary::SetEntityISMScale(const FMSEntityViewBPWrapper EntityHandle, FVector Scale)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return false;
+	}
+
+	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		RepresentationFrag->RelativeTransform.SetScale3D(Scale);
+	}
+
+	return true;
+}
+
 FFPISMRepresentationFragment UFPMassBlueprintLibrary::GetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle)
 {
 	if (EntityHandle.EntityView.GetEntity().IsValid())
@@ -69,6 +127,22 @@ FFPISMRepresentationFragment UFPMassBlueprintLibrary::GetEntityISMRepresentation
 	}
 
 	return FFPISMRepresentationFragment();
+}
+
+FFPISMDescription UFPMassBlueprintLibrary::GetEntityMainISMDescription(const FMSEntityViewBPWrapper EntityHandle)
+{
+	if (EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+		{
+			if (RepresentationFrag->ISMDescriptions.Num() > 0)
+			{
+				return RepresentationFrag->ISMDescriptions[0];
+			}
+		}
+	}
+
+	return FFPISMDescription();
 }
 
 bool UFPMassBlueprintLibrary::SetEntityMaxSpeed(const FMSEntityViewBPWrapper EntityHandle, float NewSpeed)

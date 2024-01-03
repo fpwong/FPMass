@@ -77,23 +77,26 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 
 				float NewFrame = Animation.CurrentFrame + Delta;
 
-				if (auto FPAnimToData = Cast<UFPAnimToTextureDataAsset>(Representation.ISMDescription.AnimToTextureData))
+				for (const FFPISMDescription& ISMDesc : Representation.ISMDescriptions)
 				{
-					const uint8& AnimIndex = Animation.AnimIndex;
-					if (FPAnimToData->AnimNotifyInfo.IsValidIndex(AnimIndex))
+					if (auto FPAnimToData = Cast<UFPAnimToTextureDataAsset>(ISMDesc.AnimToTextureData))
 					{
-						for (const FFPAnimNotifyEvent& NotifyEvent : FPAnimToData->AnimNotifyInfo[AnimIndex].AnimNotifies)
+						const uint8& AnimIndex = Animation.AnimIndex;
+						if (FPAnimToData->AnimNotifyInfo.IsValidIndex(AnimIndex))
 						{
-							if (Animation.CurrentFrame <= NotifyEvent.Frame && NewFrame >= NotifyEvent.Frame)
+							for (const FFPAnimNotifyEvent& NotifyEvent : FPAnimToData->AnimNotifyInfo[AnimIndex].AnimNotifies)
 							{
-#if USE_GAME_THREAD
-								Animation.AnimationCallbacks.OnAnimNotify.ExecuteIfBound();
-#else
-								Context.Defer().PushCommand<FMassDeferredSetCommand>([Value = "Foo", Callback = Animation.AnimationCallbacks.OnAnimNotify](FMassEntityManager& Manager)
+								if (Animation.CurrentFrame <= NotifyEvent.Frame && NewFrame >= NotifyEvent.Frame)
 								{
-									Callback.ExecuteIfBound(Value);
-								});
-#endif
+	#if USE_GAME_THREAD
+									Animation.AnimationCallbacks.OnAnimNotify.ExecuteIfBound();
+	#else
+									Context.Defer().PushCommand<FMassDeferredSetCommand>([Value = "Foo", Callback = Animation.AnimationCallbacks.OnAnimNotify](FMassEntityManager& Manager)
+									{
+										Callback.ExecuteIfBound(Value);
+									});
+	#endif
+								}
 							}
 						}
 					}
