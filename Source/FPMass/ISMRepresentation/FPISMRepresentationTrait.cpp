@@ -3,6 +3,7 @@
 #include "FPISMRepresentationTrait.h"
 
 #include "FPISMSubsystem.h"
+#include "GameplayTagContainer.h"
 #include "MassCommonFragments.h"
 #include "MassEntityTemplateRegistry.h"
 #include "MassEntityView.h"
@@ -24,6 +25,15 @@ TArray<float> FFPISMAnimationFragment::AsCustomData() const
 	return { WalkBlend, MontageBlend, IdleWalkFrame, MontageCurrFrame, MontageStartFrame, MontageNumFrames };
 }
 
+FGuid FFPISMRepresentationFragment::AddLayer(const FGameplayTag& LayerTag, const FFPISMDescription& Description)
+{
+	FFPISMDescriptionLayer NewLayer;
+	NewLayer.Description = Description;
+	NewLayer.Guid = FGuid::NewGuid();
+	Layers.FindOrAdd(LayerTag).Layers.Add(NewLayer);
+	return NewLayer.Guid;
+}
+
 void UFPISMRepresentationTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
 	if (!World.IsGameWorld())
@@ -42,5 +52,20 @@ void UFPISMRepresentationTrait::BuildTemplate(FMassEntityTemplateBuildContext& B
 	BuildContext.AddFragment<FFPISMAnimationFragment>();
 
 	FFPISMRepresentationFragment& RepFrag = BuildContext.AddFragment_GetRef<FFPISMRepresentationFragment>();
-	RepFrag = Representation;
+	// RepFrag = Representation;
+	RepFrag.RelativeTransform = RelativeTransform;
+	RepFrag.AddLayer(FGameplayTag::RequestGameplayTag("ISMLayer.Main"), ISMDescription);// = RelativeTransform;
 }
+
+// #if WITH_EDITORONLY_DATA
+// void UFPISMRepresentationTrait::Serialize(FArchive& Ar)
+// {
+// 	Super::Serialize(Ar);
+//
+// 	if (ISMDescription.AnimToTextureData == nullptr)
+// 	{
+// 		ISMDescription = Representation.ISMDescription;
+// 		MarkPackageDirty();
+// 	}
+// }
+// #endif

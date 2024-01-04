@@ -77,7 +77,7 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 
 				float NewFrame = Animation.CurrentFrame + Delta;
 
-				for (const FFPISMDescription& ISMDesc : Representation.ISMDescriptions)
+				Representation.ForEachActiveISMDescription([&](const FFPISMDescription& ISMDesc)
 				{
 					if (auto FPAnimToData = Cast<UFPAnimToTextureDataAsset>(ISMDesc.AnimToTextureData))
 					{
@@ -100,7 +100,7 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 							}
 						}
 					}
-				}
+				});
 
 				Animation.CurrentFrame = NewFrame;
 

@@ -129,6 +129,27 @@ struct FPMASS_API FFPISMDescription
 };
 
 USTRUCT(BlueprintType)
+struct FPMASS_API FFPISMDescriptionLayer
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FFPISMDescription Description;
+
+	UPROPERTY()
+	FGuid Guid;
+};
+
+USTRUCT(BlueprintType)
+struct FPMASS_API FFPISMDescriptionLayers
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	TArray<FFPISMDescriptionLayer> Layers;
+};
+
+USTRUCT(BlueprintType)
 struct FPMASS_API FFPISMRepresentationFragment : public FMassFragment
 {
 	GENERATED_BODY()
@@ -136,11 +157,15 @@ struct FPMASS_API FFPISMRepresentationFragment : public FMassFragment
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform RelativeTransform;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FFPISMDescription> ISMDescriptions;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	// FFPISMDescription ISMDescription;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FFPISMDescription ISMDescription;
+	TMap<FGameplayTag, FFPISMDescriptionLayers> Layers;
+
+	void ForEachActiveISMDescription(TFunctionRef<void(const FFPISMDescription& Description)> Func) const;
+
+	FGuid AddLayer(const FGameplayTag& LayerTag, const FFPISMDescription& Description);
 
 	FFPISMRepresentationFragment()
 	{
@@ -159,3 +184,4 @@ struct FPMASS_API FFPISMRepresentationFragment : public FMassFragment
 // 	UPROPERTY(EditAnywhere)
 // 	FTransform RelativeTransform;
 // };
+

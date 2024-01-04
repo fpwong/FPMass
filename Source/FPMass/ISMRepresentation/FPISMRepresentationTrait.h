@@ -13,6 +13,11 @@ class FPMASS_API UFPISMRepresentationTrait : public UMassEntityTraitBase
 	GENERATED_BODY()
 
 public:
+	UFPISMRepresentationTrait()
+	{
+		RelativeTransform = FTransform(FRotator(0, -90, 0), FVector(0, 0, -100));
+	}
+
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 
 	// UPROPERTY(EditAnywhere)
@@ -20,4 +25,14 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	FFPISMRepresentationFragment Representation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FTransform RelativeTransform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FFPISMDescription ISMDescription;
+
+// #if WITH_EDITORONLY_DATA
+// 	virtual void Serialize(FArchive& Ar) override;
+// #endif
 };

@@ -48,6 +48,7 @@ public class FPMass : ModuleRules
 				"GameplayAbilities",
 				"AnimToTexture",
 				"NavigationSystem",
+				"GameplayTags",
 
 				// ~~ Custom plugins
 				"FPGameplayAbilities",

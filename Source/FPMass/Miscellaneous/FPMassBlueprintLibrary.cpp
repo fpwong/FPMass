@@ -4,6 +4,7 @@
 
 #include "FPAbilitySystemFragments.h"
 #include "FPSlideMovementProcessor.h"
+#include "GameplayTagContainer.h"
 #include "Common/Misc/MSBPFunctionLibrary.h"
 #include "FPMass/ISMRepresentation/FPISMRepresentationFragments.h"
 
@@ -14,7 +15,7 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 	{
 		if (FFPISMAnimationFragment* AnimState = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMAnimationFragment>())
 		{
-			for (const auto& ISMDesc : Representation->ISMDescriptions)
+			Representation->ForEachActiveISMDescription([&](const FFPISMDescription& ISMDesc)
 			{
 				if (ISMDesc.AnimToTextureData)
 				{
@@ -31,7 +32,7 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 						AnimState->CurrentMontage = NewAnimation;
 					}
 				}
-			}
+			});
 		}
 	}
 }
@@ -44,61 +45,6 @@ UAbilitySystemComponent* UFPMassBlueprintLibrary::GetAbilitySystemFromEntity(con
 	}
 
 	return nullptr;
-}
-
-bool UFPMassBlueprintLibrary::SetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle, FFPISMRepresentationFragment Representation)
-{
-	if (!EntityHandle.EntityView.GetEntity().IsValid())
-	{
-		return false;
-	}
-
-	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
-	{
-		*RepresentationFrag = Representation;
-	}
-
-	return true;
-}
-
-FGuid UFPMassBlueprintLibrary::AddEntityISMDescription(const FMSEntityViewBPWrapper EntityHandle, FFPISMDescription Description)
-{
-	if (!EntityHandle.EntityView.GetEntity().IsValid())
-	{
-		return FGuid();
-	}
-
-	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
-	{
-		RepresentationFrag->ISMDescriptions.Add(Description);
-		return Description.Guid; 
-	}
-
-	return FGuid();
-}
-
-bool UFPMassBlueprintLibrary::RemoveEntityISMDescription(const FMSEntityViewBPWrapper EntityHandle, FGuid Guid)
-{
-	if (!EntityHandle.EntityView.GetEntity().IsValid())
-	{
-		return false;
-	}
-
-	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
-	{
-		int Index = RepresentationFrag->ISMDescriptions.IndexOfByPredicate([&Guid](const FFPISMDescription& Desc)
-		{
-			return Desc.Guid == Guid;
-		});
-
-		if (Index >= 0)
-		{
-			RepresentationFrag->ISMDescriptions.RemoveAt(Index);
-			return true;
-		}
-	}
-
-	return false;
 }
 
 bool UFPMassBlueprintLibrary::SetEntityISMScale(const FMSEntityViewBPWrapper EntityHandle, FVector Scale)
@@ -116,6 +62,45 @@ bool UFPMassBlueprintLibrary::SetEntityISMScale(const FMSEntityViewBPWrapper Ent
 	return true;
 }
 
+FGuid UFPMassBlueprintLibrary::AddEntityISMLayer(const FMSEntityViewBPWrapper EntityHandle, FGameplayTag LayerTag, FFPISMDescription Description)
+{
+	if (EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+		{
+			return RepresentationFrag->AddLayer(LayerTag, Description);
+		}
+	}
+
+	return FGuid();
+}
+
+bool UFPMassBlueprintLibrary::RemoveEntityISMLayer(const FMSEntityViewBPWrapper EntityHandle, FGameplayTag LayerTag, FGuid Guid)
+{
+	if (EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+		{
+			auto& Layers = RepresentationFrag->Layers.FindOrAdd(LayerTag).Layers;
+
+			auto IndexToRemove = Layers.IndexOfByPredicate([Guid](const FFPISMDescriptionLayer& Layer)
+			{
+				return Layer.Guid == Guid;
+			});
+
+			// UE_LOG(LogTemp, Warning, TEXT("Remove %d"), IndexToRemove);
+
+			if (IndexToRemove >= 0)
+			{
+				Layers.RemoveAt(IndexToRemove);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 FFPISMRepresentationFragment UFPMassBlueprintLibrary::GetEntityISMRepresentation(const FMSEntityViewBPWrapper EntityHandle)
 {
 	if (EntityHandle.EntityView.GetEntity().IsValid())
@@ -127,22 +112,6 @@ FFPISMRepresentationFragment UFPMassBlueprintLibrary::GetEntityISMRepresentation
 	}
 
 	return FFPISMRepresentationFragment();
-}
-
-FFPISMDescription UFPMassBlueprintLibrary::GetEntityMainISMDescription(const FMSEntityViewBPWrapper EntityHandle)
-{
-	if (EntityHandle.EntityView.GetEntity().IsValid())
-	{
-		if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
-		{
-			if (RepresentationFrag->ISMDescriptions.Num() > 0)
-			{
-				return RepresentationFrag->ISMDescriptions[0];
-			}
-		}
-	}
-
-	return FFPISMDescription();
 }
 
 bool UFPMassBlueprintLibrary::SetEntityMaxSpeed(const FMSEntityViewBPWrapper EntityHandle, float NewSpeed)

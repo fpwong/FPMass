@@ -55,25 +55,32 @@ void UFPISMRepresentationProcessors::Execute(FMassEntityManager& EntityManager, 
 					const FFPISMAnimationFragment& Anim = AnimationList[i];
 					TArray<float> CustomData = Anim.AsCustomData();
 
-					for (const auto& ISMDesc : Representation.ISMDescriptions)
+					// for (const auto& ISMDesc : Representation.ISMDescriptions)
+					for (const auto& Elem : Representation.Layers)
 					{
-						if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(ISMDesc))
+
+						if (Elem.Value.Layers.Num())
 						{
-							FFPISMStateFragment& InstanceId = InstanceIdList[i];
+							// only draw the top layer
+							const auto& ISMDesc = Elem.Value.Layers.Last().Description;
+							if (AFPISMActor* ISMActor = ISMSubsystem->FindOrCreateISM(ISMDesc))
+							{
+								FFPISMStateFragment& InstanceId = InstanceIdList[i];
 
-							FTransform Transform = Representation.RelativeTransform * ISMDesc.RelativeTransform * TransformList[i].GetTransform();
-							// FTransform Transform = ISMSharedFragment.RelativeTransform * TransformList[i].GetTransform();
+								FTransform Transform = Representation.RelativeTransform * ISMDesc.RelativeTransform * TransformList[i].GetTransform();
+								// FTransform Transform = ISMSharedFragment.RelativeTransform * TransformList[i].GetTransform();
 
-							uint32 EntityId = GetTypeHash(Context.GetEntity(i));
+								uint32 EntityId = GetTypeHash(Context.GetEntity(i));
 
-							ISMActor->SharedData.UpdateInstanceIds.Add(EntityId);
-							ISMActor->SharedData.StaticMeshInstanceTransforms.Add(Transform);
-							ISMActor->SharedData.StaticMeshInstancePrevTransforms.Add(InstanceId.PrevTransform);
+								ISMActor->SharedData.UpdateInstanceIds.Add(EntityId);
+								ISMActor->SharedData.StaticMeshInstanceTransforms.Add(Transform);
+								ISMActor->SharedData.StaticMeshInstancePrevTransforms.Add(InstanceId.PrevTransform);
 
-							// UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
-							ISMActor->SharedData.StaticMeshInstanceCustomFloats.Append(CustomData);
+								// UE_LOG(LogTemp, Warning, TEXT("%f %f %f %f %f %f"), CustomData[0], CustomData[1], CustomData[2], CustomData[3], CustomData[4], CustomData[5]);
+								ISMActor->SharedData.StaticMeshInstanceCustomFloats.Append(CustomData);
 
-							InstanceId.PrevTransform = Transform;
+								InstanceId.PrevTransform = Transform;
+							}
 						}
 					}
 				}
