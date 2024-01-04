@@ -48,7 +48,7 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 		const TConstArrayView<FAgentRadiusFragment> RadiusList = Context.GetFragmentView<FAgentRadiusFragment>();
 		const TArrayView<FMassVelocityFragment> VelocityList = Context.GetMutableFragmentView<FMassVelocityFragment>();
 
-		float DeltaTime = Context.GetDeltaTimeSeconds();
+		float DeltaTime = FMath::Min(0.1f, Context.GetDeltaTimeSeconds()); // cap delta time
 
 		auto World = Context.GetWorld();
 
