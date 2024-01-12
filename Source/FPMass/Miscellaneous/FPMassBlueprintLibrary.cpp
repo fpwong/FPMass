@@ -62,6 +62,51 @@ bool UFPMassBlueprintLibrary::SetEntityISMScale(const FMSEntityViewBPWrapper Ent
 	return true;
 }
 
+bool UFPMassBlueprintLibrary::ScaleUpEntity(const FMSEntityViewBPWrapper EntityHandle, FVector Scale)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return false;
+	}
+
+	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		const FVector NewScale = RepresentationFrag->RelativeTransform.GetScale3D() * Scale;
+		RepresentationFrag->RelativeTransform.SetScale3D(NewScale);
+	}
+
+	return true;
+}
+
+bool UFPMassBlueprintLibrary::ScaleDownEntity(const FMSEntityViewBPWrapper EntityHandle, FVector Scale)
+{
+	if (!EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		return false;
+	}
+
+	if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		const FVector NewScale = RepresentationFrag->RelativeTransform.GetScale3D() / Scale;
+		RepresentationFrag->RelativeTransform.SetScale3D(NewScale);
+	}
+
+	return true;
+}
+
+FVector UFPMassBlueprintLibrary::GetEntityISMScale(const FMSEntityViewBPWrapper EntityHandle)
+{
+	if (EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		if (FFPISMRepresentationFragment* RepresentationFrag = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+		{
+			return RepresentationFrag->RelativeTransform.GetScale3D();
+		}
+	}
+
+	return FVector(1,1,1);
+}
+
 FGuid UFPMassBlueprintLibrary::AddEntityISMLayer(const FMSEntityViewBPWrapper EntityHandle, FGameplayTag LayerTag, FFPISMDescription Description)
 {
 	if (EntityHandle.EntityView.GetEntity().IsValid())

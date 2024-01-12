@@ -31,6 +31,15 @@ public:
 	static bool SetEntityISMScale(const FMSEntityViewBPWrapper EntityHandle, FVector Scale = FVector(1, 1, 1));
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool ScaleUpEntity(const FMSEntityViewBPWrapper EntityHandle, FVector Scale = FVector(1, 1, 1));
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool ScaleDownEntity(const FMSEntityViewBPWrapper EntityHandle, FVector Scale = FVector(1, 1, 1));
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static FVector GetEntityISMScale(const FMSEntityViewBPWrapper EntityHandle);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static FGuid AddEntityISMLayer(const FMSEntityViewBPWrapper EntityHandle, FGameplayTag LayerTag, FFPISMDescription Description);
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
