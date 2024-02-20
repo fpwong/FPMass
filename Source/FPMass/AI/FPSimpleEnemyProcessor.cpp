@@ -5,6 +5,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "FPAIFragments.h"
+#include "FPMassSettings.h"
 #include "MassCommonFragments.h"
 #include "MassEntitySubsystem.h"
 #include "MassEntityView.h"
@@ -147,7 +148,13 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case EFPSimpleEnemyState::Moving:
 				{
 					// when we reach the target
-					float AttackRange = 250.f; // TODO read from ability system
+					float AttackRange = 500.f; // TODO read from ability system
+
+					if (AbilitySystem.IsValid() && UFPMassSettings::Get().AttackRangeAttribute.IsValid())
+					{
+						AttackRange = AbilitySystem->GetNumericAttribute(UFPMassSettings::Get().AttackRangeAttribute);
+					}
+
 					if (MoveToTarget.Center.IsZero() || ToTarget.SizeSquared2D() <= AttackRange * AttackRange)
 					{
 						if (TargetActor)
