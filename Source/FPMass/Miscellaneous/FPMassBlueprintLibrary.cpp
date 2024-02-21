@@ -5,6 +5,7 @@
 #include "FPAbilitySystemFragments.h"
 #include "FPSlideMovementProcessor.h"
 #include "GameplayTagContainer.h"
+#include "Abilities/GameplayAbility.h"
 #include "Common/Misc/MSBPFunctionLibrary.h"
 #include "Elements/Actor/ActorElementLevelEditorViewportInteractionCustomization.h"
 #include "FPMass/AI/FPSimpleEnemyProcessor.h"
@@ -182,8 +183,11 @@ bool UFPMassBlueprintLibrary::SetEnemyAttackAbility(const FMSEntityViewBPWrapper
 	{
 		if (FFPSimpleEnemyParameters* EnemyParams = EntityHandle.EntityView.GetSharedFragmentDataPtr<FFPSimpleEnemyParameters>())
 		{
-			EnemyParams->AttackAbility = Ability;
-			return true;
+			if (EnemyParams->AttackAbility != Ability)
+			{
+				EnemyParams->AttackAbility = Ability;
+				return true;
+			}
 		}
 	}
 
