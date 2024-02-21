@@ -35,8 +35,7 @@ void UFPSimpleEnemyProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FFPTargetDataFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FFPSimpleEnemyStateFragment>(EMassFragmentAccess::ReadWrite);
 
-	// EntityQuery.AddConstSharedRequirement<FFPISMParameters>();
-	EntityQuery.AddConstSharedRequirement<FFPSimpleEnemyParameters>();
+	EntityQuery.AddSharedRequirement<FFPSimpleEnemyParameters>(EMassFragmentAccess::ReadOnly);
 }
 
 void UFPSimpleEnemyProcessor::Initialize(UObject& Owner)
@@ -59,8 +58,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		const auto& TargetDataList = Context.GetMutableFragmentView<FFPTargetDataFragment>();
 		const auto& EnemyStateList = Context.GetMutableFragmentView<FFPSimpleEnemyStateFragment>();
 
-		const auto& EnemyParameters = Context.GetConstSharedFragment<FFPSimpleEnemyParameters>();
-		// const auto& ISMParameters = Context.GetConstSharedFragment<FFPISMParameters>();
+		const auto& EnemyParameters = Context.GetSharedFragment<FFPSimpleEnemyParameters>();
 
 		const TConstArrayView<FTransformFragment> Transforms = Context.GetFragmentView<FTransformFragment>();
 

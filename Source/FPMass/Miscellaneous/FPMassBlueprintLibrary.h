@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "FPMass/ISMRepresentation/FPISMRepresentationFragments.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "FPMassBlueprintLibrary.generated.h"
 
@@ -50,4 +51,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static bool SetEntityMaxSpeed(const FMSEntityViewBPWrapper EntityHandle, float NewSpeed);
+
+	UFUNCTION(BlueprintCallable, Category = "FPMass")
+	static bool SetEnemyAttackAbility(const FMSEntityViewBPWrapper EntityHandle, TSubclassOf<UGameplayAbility> Ability);
 };

@@ -16,6 +16,8 @@ void UFPSimpleEnemyTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCo
 	BuildContext.AddFragment<FFPSimpleMovementFragment>();
 
 	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
-	FConstSharedStruct& SimpleEnemyFragment = EntityManager.GetOrCreateConstSharedFragment(SimpleEnemyParameters);
-	BuildContext.AddConstSharedFragment(SimpleEnemyFragment);
+
+	const uint32 Hash = UE::StructUtils::GetStructCrc32(FConstStructView::Make(SimpleEnemyParameters));
+	const FSharedStruct& SimpleEnemyFragment = EntityManager.GetOrCreateSharedFragmentByHash<FFPSimpleEnemyParameters>(Hash, SimpleEnemyParameters);
+	BuildContext.AddSharedFragment(SimpleEnemyFragment);
 }

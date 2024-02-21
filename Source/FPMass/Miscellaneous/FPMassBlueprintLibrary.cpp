@@ -6,6 +6,8 @@
 #include "FPSlideMovementProcessor.h"
 #include "GameplayTagContainer.h"
 #include "Common/Misc/MSBPFunctionLibrary.h"
+#include "Elements/Actor/ActorElementLevelEditorViewportInteractionCustomization.h"
+#include "FPMass/AI/FPSimpleEnemyProcessor.h"
 #include "FPMass/ISMRepresentation/FPISMRepresentationFragments.h"
 
 void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHandle, int AnimIndex, FFPISMAnimationCallbacks AnimationCallbacks)
@@ -172,4 +174,18 @@ bool UFPMassBlueprintLibrary::SetEntityMaxSpeed(const FMSEntityViewBPWrapper Ent
 	}
 
 	return true;
+}
+
+bool UFPMassBlueprintLibrary::SetEnemyAttackAbility(const FMSEntityViewBPWrapper EntityHandle, TSubclassOf<UGameplayAbility> Ability)
+{
+	if (EntityHandle.EntityView.GetEntity().IsValid())
+	{
+		if (FFPSimpleEnemyParameters* EnemyParams = EntityHandle.EntityView.GetSharedFragmentDataPtr<FFPSimpleEnemyParameters>())
+		{
+			EnemyParams->AttackAbility = Ability;
+			return true;
+		}
+	}
+
+	return false;
 }
