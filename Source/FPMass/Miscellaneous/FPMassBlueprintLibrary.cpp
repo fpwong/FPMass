@@ -181,7 +181,7 @@ bool UFPMassBlueprintLibrary::SetEnemyAttackAbility(const FMSEntityViewBPWrapper
 {
 	if (EntityHandle.EntityView.GetEntity().IsValid())
 	{
-		if (FFPSimpleEnemyParameters* EnemyParams = EntityHandle.EntityView.GetSharedFragmentDataPtr<FFPSimpleEnemyParameters>())
+		if (FFPSimpleEnemyParameters* EnemyParams = EntityHandle.EntityView.GetFragmentDataPtr<FFPSimpleEnemyParameters>())
 		{
 			if (EnemyParams->AttackAbility != Ability)
 			{

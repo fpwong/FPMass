@@ -15,6 +15,6 @@ class FPMASS_API UFPSimpleEnemyTrait : public UMassEntityTraitBase
 protected:
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 
-	UPROPERTY(EditAnywhere)
-	FFPSimpleEnemyParameters SimpleEnemyParameters;
+	// UPROPERTY(EditAnywhere)
+	// FFPSimpleEnemyParameters SimpleEnemyParameters;
 };

@@ -18,10 +18,10 @@ void UFPSimpleEnemyTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCo
 
 	FMassEntityManager& EntityManager = UE::Mass::Utils::GetEntityManagerChecked(World);
 
-	// TODO I think this screw up if we have another shared frag which uses this TemplateID...
-	const uint32 Hash = BuildContext.GetTemplateID().GetHash64();
+	BuildContext.AddFragment<FFPSimpleEnemyParameters>();
 
-	const FSharedStruct& SimpleEnemyFragment = EntityManager.GetOrCreateSharedFragmentByHash<FFPSimpleEnemyParameters>(Hash, SimpleEnemyParameters);
-
-	BuildContext.AddSharedFragment(SimpleEnemyFragment);
+	// // TODO I think this screw up if we have another shared frag which uses this TemplateID...
+	// const uint32 Hash = BuildContext.GetTemplateID().GetHash64();
+	// const FSharedStruct& SimpleEnemyFragment = EntityManager.GetOrCreateSharedFragmentByHash<FFPSimpleEnemyParameters>(Hash, SimpleEnemyParameters);
+	// BuildContext.AddSharedFragment(SimpleEnemyFragment);
 }

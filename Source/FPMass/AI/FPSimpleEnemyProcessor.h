@@ -24,7 +24,7 @@ struct FPMASS_API FFPSimpleEnemyStateFragment : public FMassFragment
 };
 
 USTRUCT(BlueprintType)
-struct FPMASS_API FFPSimpleEnemyParameters : public FMassSharedFragment
+struct FPMASS_API FFPSimpleEnemyParameters : public FMassFragment
 {
 	GENERATED_BODY()
 
