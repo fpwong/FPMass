@@ -71,7 +71,7 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 				TargetMontageBlend = 1;
 
 				// update current frame
-				const float AnimSpeed = 1.0f;
+				const float AnimSpeed = Animation.AnimSpeed;
 				const float Delta = Context.GetWorld()->GetDeltaSeconds() * 30.0f * AnimSpeed; // 30 fps?
 				MontageInterpSpeed += FMath::Max(1.0f, AnimSpeed);
 

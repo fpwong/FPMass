@@ -42,6 +42,9 @@ struct FPMASS_API FFPISMAnimationState
 	UPROPERTY(VisibleAnywhere, Category = Default)
 	float CurrentFrame = 0;
 
+	UPROPERTY(VisibleAnywhere, Category = Default)
+	float AnimSpeed = 1.0f;
+
 	UPROPERTY()
 	FFPISMAnimationCallbacks AnimationCallbacks;
 };

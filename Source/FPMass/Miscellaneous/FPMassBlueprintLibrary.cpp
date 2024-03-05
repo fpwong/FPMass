@@ -20,19 +20,23 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 		{
 			Representation->ForEachActiveISMDescription([&](const FFPISMDescription& ISMDesc)
 			{
-				if (ISMDesc.AnimToTextureData)
+				if (UFPAnimToTextureDataAsset* FPAnimToTexture = Cast<UFPAnimToTextureDataAsset>(ISMDesc.AnimToTextureData))
 				{
-					if (ISMDesc.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
+					if (ISMDesc.AnimToTextureData)
 					{
-						FAnimToTextureAnimInfo& AnimInfo = ISMDesc.AnimToTextureData->Animations[AnimIndex];
+						if (ISMDesc.AnimToTextureData->Animations.IsValidIndex(AnimIndex))
+						{
+							FAnimToTextureAnimInfo& AnimInfo = ISMDesc.AnimToTextureData->Animations[AnimIndex];
 
-						FFPISMAnimationState NewAnimation;
-						NewAnimation.AnimIndex = AnimIndex;
-						NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
-						NewAnimation.StartFrame = AnimInfo.StartFrame;
-						NewAnimation.AnimationCallbacks = AnimationCallbacks;
+							FFPISMAnimationState NewAnimation;
+							NewAnimation.AnimIndex = AnimIndex;
+							NewAnimation.NumFrames = AnimInfo.EndFrame - AnimInfo.StartFrame;
+							NewAnimation.StartFrame = AnimInfo.StartFrame;
+							NewAnimation.AnimationCallbacks = AnimationCallbacks;
+							NewAnimation.AnimSpeed = FPAnimToTexture->GetAnimSpeed(AnimIndex);
 
-						AnimState->CurrentMontage = NewAnimation;
+							AnimState->CurrentMontage = NewAnimation;
+						}
 					}
 				}
 			});
