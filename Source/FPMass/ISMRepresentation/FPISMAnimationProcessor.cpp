@@ -9,6 +9,7 @@
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
 #include "MassSignalSubsystem.h"
+#include "FPMass/AI/FPSimpleEnemyProcessor.h"
 #include "FPVertexAnimationTextures/FPAnimToTextureDataAsset.h"
 
 #define USE_GAME_THREAD false
@@ -25,6 +26,7 @@ void UFPISMAnimationProcessors::ConfigureQueries()
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FFPISMRepresentationFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFPSimpleEnemyStateFragment>(EMassFragmentAccess::ReadOnly);
 
 	EntityQuery.AddRequirement<FFPISMAnimationFragment>(EMassFragmentAccess::ReadWrite);
 
@@ -41,8 +43,8 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 
 		const auto& VelocityList = Context.GetFragmentView<FMassVelocityFragment>();
 		const auto& RepresentationList = Context.GetFragmentView<FFPISMRepresentationFragment>();
-
 		const auto& AnimationList = Context.GetMutableFragmentView<FFPISMAnimationFragment>();
+		const auto& EnemyStateList = Context.GetMutableFragmentView<FFPSimpleEnemyStateFragment>();
 
 		// const auto& ISMParameters = Context.GetConstSharedFragment<FFPISMParameters>();
 
@@ -56,13 +58,14 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 			const auto& Velocity = VelocityList[i].Value;
 			FFPISMAnimationFragment& AnimationState = AnimationList[i];
 			const auto& Representation = RepresentationList[i];
+			const auto& EnemyState = EnemyStateList[i];
 
 			float MaxSpeed = 400.0f;
 			float TargetWalkBlend = FMath::Clamp(Velocity.SizeSquared2D() / (MaxSpeed * MaxSpeed), 0.0, 1.0);
 			AnimationState.WalkBlend = FMath::FInterpTo(AnimationState.WalkBlend, TargetWalkBlend, DeltaTime, 8.0f);
 
 			float TargetMontageBlend = 0;
-			float MontageInterpSpeed = 12.0f;
+			float MontageInterpSpeed = 10.0f;
 
 			if (AnimationState.CurrentMontage.IsSet())
 			{
@@ -70,8 +73,13 @@ void UFPISMAnimationProcessors::Execute(FMassEntityManager& EntityManager, FMass
 
 				TargetMontageBlend = 1;
 
+				// if (EnemyState.ActionSpeed <= 0.0f)
+				// {
+				// 	TargetMontageBlend = 0.0f;
+				// }
+
 				// update current frame
-				const float AnimSpeed = Animation.AnimSpeed;
+				const float AnimSpeed = Animation.AnimSpeed * EnemyState.ActionSpeed;
 				const float Delta = Context.GetWorld()->GetDeltaSeconds() * 30.0f * AnimSpeed; // 30 fps?
 				MontageInterpSpeed += FMath::Max(1.0f, AnimSpeed);
 

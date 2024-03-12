@@ -2,14 +2,19 @@
 
 #include "FPSimpleOrientation.h"
 
+#include "AbilitySystemComponent.h"
 #include "FPSimpleEnemyProcessor.h"
 #include "MassCommonFragments.h"
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
 #include "MassNavigationFragments.h"
 #include "AbilitySystem/FPGAGameplayAbilitiesLibrary.h"
+#include "AbilitySystem/FPGATypes.h"
 #include "FPMass/AI/FPAIFragments.h"
+#include "FPMass/Miscellaneous/FPAbilitySystemFragments.h"
 #include "Kismet/KismetMathLibrary.h"
+
+class UFPGameplayInterface;
 
 UFPSimpleOrientationProcessor::UFPSimpleOrientationProcessor()
 	: EntityQuery(*this)
@@ -24,6 +29,7 @@ void UFPSimpleOrientationProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FFPTargetDataFragment>(EMassFragmentAccess::ReadOnly);
 	EntityQuery.AddRequirement<FFPSimpleEnemyStateFragment>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FFPAbilitySystemFragment>(EMassFragmentAccess::ReadOnly);
 }
 
 void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -39,18 +45,32 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 		const auto& VelocityList = Context.GetMutableFragmentView<FMassVelocityFragment>();
 		const auto& TargetDataList = Context.GetMutableFragmentView<FFPTargetDataFragment>();
 		const auto& EnemyStateList = Context.GetMutableFragmentView<FFPSimpleEnemyStateFragment>();
+		const auto& AbilitySystemList = Context.GetFragmentView<FFPAbilitySystemFragment>();
 
 		for (int32 EntityIndex = 0; EntityIndex < NumEntities; ++EntityIndex)
 		{
 			FTransform& CurrentTransform = LocationList[EntityIndex].GetMutableTransform();
-			auto& EnemyState = EnemyStateList[EntityIndex].State;
+			auto& EnemyState = EnemyStateList[EntityIndex];
+			auto& AbilitySystem = AbilitySystemList[EntityIndex].AbilitySystem;
+
+			// skip if we are unable to rotate
+			if (AbilitySystem.IsValid() && AbilitySystem->Implements<UFPGameplayInterface>())
+			{
+				if (IFPGameplayInterface* Interface = Cast<IFPGameplayInterface>(AbilitySystem.Get()))
+				{
+					if (!Interface->CanRotate(AbilitySystem.Get()))
+					{
+						continue;
+					}
+				}
+			}
 
 			float InterpSpeed = 6.0f;
 
 			bool bTryLookAtTargetData = false;
 			TOptional<FVector> LookAtTarget;
 
-			switch (EnemyState)
+			switch (EnemyState.State)
 			{
 				case EFPSimpleEnemyState::Moving: // rotate to velocity
 				{
@@ -81,6 +101,12 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 				default: ;
 			}
 
+			const float FinalRotationSpeed = InterpSpeed * EnemyState.RotationSpeed * EnemyState.ActionSpeed;
+			if (FinalRotationSpeed <= 0.0f)
+			{
+				continue;
+			}
+
 			if (bTryLookAtTargetData)
 			{
 				FGameplayAbilityTargetDataHandle& TargetData = TargetDataList[EntityIndex].TargetData;
@@ -97,7 +123,7 @@ void UFPSimpleOrientationProcessor::Execute(FMassEntityManager& EntityManager, F
 				FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(CurrentTransform.GetLocation(), LookAtTarget.GetValue());
 				NewRotation.Pitch = 0;
 				NewRotation.Roll = 0;
-				CurrentTransform.SetRotation(FMath::RInterpTo(CurrRotation, NewRotation, DeltaTime, InterpSpeed).Quaternion());
+				CurrentTransform.SetRotation(FMath::RInterpTo(CurrRotation, NewRotation, DeltaTime, FinalRotationSpeed).Quaternion());
 			}
 		}
 	});

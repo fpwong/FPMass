@@ -5,6 +5,8 @@
 #include "NavigationSystem.h"
 #include "FPSimpleEnemyProcessor.generated.h"
 
+class UGameplayAbility;
+
 UENUM()
 enum class EFPSimpleEnemyState : uint8
 {
@@ -21,6 +23,10 @@ struct FPMASS_API FFPSimpleEnemyStateFragment : public FMassFragment
 	EFPSimpleEnemyState State = EFPSimpleEnemyState::Idle;
 
 	float LastMoved = 0.0f;
+
+	float RotationSpeed = 1.0f;
+
+	float ActionSpeed = 1.0f;
 };
 
 USTRUCT(BlueprintType)

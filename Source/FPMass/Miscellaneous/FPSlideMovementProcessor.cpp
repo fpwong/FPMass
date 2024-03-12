@@ -2,10 +2,14 @@
 
 #include "FPSlideMovementProcessor.h"
 
+#include "AbilitySystemComponent.h"
+#include "FPAbilitySystemFragments.h"
 #include "MassCommonFragments.h"
 #include "MassCommonTypes.h"
 #include "MassExecutionContext.h"
 #include "MassMovementFragments.h"
+#include "AbilitySystem/FPGATypes.h"
+#include "FPMass/AI/FPSimpleEnemyProcessor.h"
 
 #define FP_DRAW_DEBUG 0
 
@@ -27,6 +31,8 @@ void UFPSlideMovementProcessor::ConfigureQueries()
 	MovementEntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FFPSimpleMovementFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
+	MovementEntityQuery.AddRequirement<FFPAbilitySystemFragment>(EMassFragmentAccess::ReadOnly);
+	MovementEntityQuery.AddRequirement<FFPSimpleEnemyStateFragment>(EMassFragmentAccess::ReadOnly);
 	MovementEntityQuery.RegisterWithProcessor(*this);
 }
 
@@ -47,6 +53,8 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 		const TConstArrayView<FMassForceFragment> ForceList = Context.GetFragmentView<FMassForceFragment>();
 		const TConstArrayView<FAgentRadiusFragment> RadiusList = Context.GetFragmentView<FAgentRadiusFragment>();
 		const TArrayView<FMassVelocityFragment> VelocityList = Context.GetMutableFragmentView<FMassVelocityFragment>();
+		const TConstArrayView<FFPAbilitySystemFragment> AbilitySystemList = Context.GetFragmentView<FFPAbilitySystemFragment>();
+		const TConstArrayView<FFPSimpleEnemyStateFragment> EnemyStateList = Context.GetFragmentView<FFPSimpleEnemyStateFragment>();
 
 		float DeltaTime = FMath::Min(0.1f, Context.GetDeltaTimeSeconds()); // cap delta time
 
@@ -57,10 +65,34 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 		for (int32 EntityIndex = 0; EntityIndex < NumEntities; ++EntityIndex)
 		{
 			FTransform& Transform = TransformList[EntityIndex].GetMutableTransform();
-
 			FVector Force = ForceList[EntityIndex].Value;
-
 			const float& Radius = RadiusList[EntityIndex].Radius;
+			const auto& AbilitySystem = AbilitySystemList[EntityIndex].AbilitySystem;
+			const auto& EnemyState = EnemyStateList[EntityIndex];
+			const auto& MovementState = SimpleMovementList[EntityIndex];
+
+			bool bCanMove = true;
+
+			// block movement if our max speed is zero
+			if (MovementState.MaxSpeed <= 0.0f)
+			{
+				VelocityList[EntityIndex].Value = FVector::ZeroVector;
+				continue;
+			}
+
+			// block movement if we cannot move
+			if (AbilitySystem.IsValid() && AbilitySystem->Implements<UFPGameplayInterface>())
+			{
+				if (IFPGameplayInterface* Interface = Cast<IFPGameplayInterface>(AbilitySystem.Get()))
+				{
+					bCanMove = Interface->CanMove(AbilitySystem.Get());
+					if (!bCanMove)
+					{
+						VelocityList[EntityIndex].Value = FVector::ZeroVector;
+						continue;
+					}
+				}
+			}
 
 			FSlide Slide;
 			Slide.Shape = FCollisionShape::MakeSphere(Radius);
@@ -90,9 +122,9 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 				}
 			}
 
-			if (bIsInAir)
+			// ignore external forces when in the air or when unable to move
+			if (bIsInAir || !bCanMove)
 			{
-				// don't apply external forces when in the air
 				Force = FVector(0, 0, GravityZ);
 			}
 

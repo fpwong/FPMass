@@ -13,6 +13,11 @@
 
 void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHandle, int AnimIndex, FFPISMAnimationCallbacks AnimationCallbacks)
 {
+	if (!EntityHandle.IsValid())
+	{
+		return;
+	}
+
 	// const FFPISMParameters& ISMParameters = EntityHandle.EntityView.GetConstSharedFragmentData<FFPISMParameters>();
 	if (const FFPISMRepresentationFragment* Representation = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
 	{
@@ -44,8 +49,38 @@ void UFPMassBlueprintLibrary::PlayISMAnimation(FMSEntityViewBPWrapper EntityHand
 	}
 }
 
+void UFPMassBlueprintLibrary::StopISMAnimation(FMSEntityViewBPWrapper EntityHandle)
+{
+	if (!EntityHandle.IsValid())
+	{
+		return;
+	}
+
+	if (const FFPISMRepresentationFragment* Representation = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMRepresentationFragment>())
+	{
+		if (FFPISMAnimationFragment* AnimState = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMAnimationFragment>())
+		{
+			Representation->ForEachActiveISMDescription([&](const FFPISMDescription& ISMDesc)
+			{
+				if (UFPAnimToTextureDataAsset* FPAnimToTexture = Cast<UFPAnimToTextureDataAsset>(ISMDesc.AnimToTextureData))
+				{
+					if (ISMDesc.AnimToTextureData)
+					{
+						AnimState->CurrentMontage.Reset();
+					}
+				}
+			});
+		}
+	}
+}
+
 UAbilitySystemComponent* UFPMassBlueprintLibrary::GetAbilitySystemFromEntity(const FMSEntityViewBPWrapper EntityHandle)
 {
+	if (!EntityHandle.IsValid())
+	{
+		return nullptr;
+	}
+
 	if (FFPAbilitySystemFragment* MassFragmentPtr = EntityHandle.EntityView.GetFragmentDataPtr<FFPAbilitySystemFragment>())
 	{
 		return MassFragmentPtr->AbilitySystem.Get();

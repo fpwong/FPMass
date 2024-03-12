@@ -25,6 +25,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "FPMass", meta=(DisplayName="PlayISMAnimation"))
 	static void PlayISMAnimation(FMSEntityViewBPWrapper EntityHandle, int AnimIndex, FFPISMAnimationCallbacks AnimationCallbacks);
 
+	UFUNCTION(BlueprintCallable, Category = "FPMass", meta=(DisplayName="StopISMAnimation"))
+	static void StopISMAnimation(FMSEntityViewBPWrapper EntityHandle);
+
 	UFUNCTION(BlueprintCallable, Category = "FPMass")
 	static UAbilitySystemComponent* GetAbilitySystemFromEntity(const FMSEntityViewBPWrapper EntityHandle);
 

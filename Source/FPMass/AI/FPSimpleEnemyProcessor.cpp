@@ -194,11 +194,12 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 									}
 								});
 
-								UFPGAGameplayAbilitiesLibrary::ActivateAbilityWithEvent(AbilitySystem.Get(), EnemyParameters.AttackAbility, EventData, &OnAbilityEnded);
+								if (UFPGAGameplayAbilitiesLibrary::ActivateAbilityWithEvent(AbilitySystem.Get(), EnemyParameters.AttackAbility, EventData, &OnAbilityEnded))
+								{
+									EnemyState.State = EFPSimpleEnemyState::Attacking;
+									Velocity.Value = FVector::Zero();
+								}
 							}
-
-							EnemyState.State = EFPSimpleEnemyState::Attacking;
-							Velocity.Value = FVector::Zero();
 						}
 						else // idle
 						{
