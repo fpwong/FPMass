@@ -20,8 +20,8 @@
 UFPSimpleEnemyProcessor::UFPSimpleEnemyProcessor() : EntityQuery(*this)
 {
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::All);
-	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Tasks);
-	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
+	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Movement);
+	// ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
 	bRequiresGameThreadExecution = true; // maybe we don't need this?
 }
 
@@ -218,6 +218,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case EFPSimpleEnemyState::Attacking:
 				{
 					Velocity.Value = FVector::Zero();
+					TargetLocation = Transform.GetLocation();
 					break;
 				}
 				default: ;
@@ -231,7 +232,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			MoveToTarget.SlackRadius = 100.0f;
 			MoveToTarget.IntentAtGoal = EMassMovementAction::Stand;
 
-#if 0 // debug draw state
+#if 1 // debug draw state
 			FString CurrentState;
 			switch (EnemyState.State)
 			{
@@ -247,7 +248,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				default: ;
 			}
 
-			DrawDebugString(Context.GetWorld(), Transform.GetLocation(), CurrentState, nullptr, FColor::Red, 0.0f);
+			DrawDebugString(Context.GetWorld(), Transform.GetLocation() + FVector(0, 0, 100), CurrentState, nullptr, FColor::Red, 0.0f);
 #endif
 		}
 	});

@@ -139,7 +139,10 @@ void UFPSlideMovementProcessor::Execute(FMassEntityManager& EntityManager, FMass
 			}
 
 			FVector Delta = Velocity * DeltaTime;
+
 #if FP_DRAW_DEBUG
+			DrawDebugString(Context.GetWorld(), Transform.GetLocation(), Velocity.ToCompactString(), nullptr, FColor::Green, 0.0f);
+
 			if (bIsInAir)
 			{
 				DrawDebugString(Context.GetWorld(), Transform.GetLocation(), "FALL", nullptr, FColor::White, 0.0f);
