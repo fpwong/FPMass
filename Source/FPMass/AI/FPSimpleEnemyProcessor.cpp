@@ -232,7 +232,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			MoveToTarget.SlackRadius = 100.0f;
 			MoveToTarget.IntentAtGoal = EMassMovementAction::Stand;
 
-#if 1 // debug draw state
+#if 0 // debug draw state
 			FString CurrentState;
 			switch (EnemyState.State)
 			{
