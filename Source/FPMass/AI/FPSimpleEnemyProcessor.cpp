@@ -14,6 +14,7 @@
 #include "MassNavigationFragments.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystem/FPGAGameplayAbilitiesLibrary.h"
+#include "AbilitySystem/FPGATypes.h"
 #include "FPMass/ISMRepresentation/FPISMRepresentationTrait.h"
 #include "FPMass/Miscellaneous/FPAbilitySystemFragments.h"
 
@@ -147,12 +148,26 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case EFPSimpleEnemyState::Moving:
 				{
 					// when we reach the target
-					float AttackRange = 500.f; // TODO read from ability system
+					float AttackRange = 200.f; // TODO read from ability system
 
-					if (AbilitySystem.IsValid() && UFPMassSettings::Get().AttackRangeAttribute.IsValid())
+					// get attack range from attack ability CDO
+					if (IsValid(EnemyParameters.AttackAbility))
 					{
-						AttackRange = AbilitySystem->GetNumericAttribute(UFPMassSettings::Get().AttackRangeAttribute);
+						if (UGameplayAbility* AbilityCDO = EnemyParameters.AttackAbility->GetDefaultObject<UGameplayAbility>())
+						{
+							if (AbilityCDO->Implements<UFPAbilityInterface>())
+							{
+								AttackRange = IFPAbilityInterface::Execute_GetAbilityRange(AbilityCDO, AbilitySystem.Get());
+								AttackRange = FMath::Max(AttackRange, 150.0f);
+								// UE_LOG(LogTemp, Warning, TEXT("Get ability range %f"), AttackRange);
+							}
+						}
 					}
+
+					// if (AbilitySystem.IsValid() && UFPMassSettings::Get().AttackRangeAttribute.IsValid())
+					// {
+					// 	AttackRange = AbilitySystem->GetNumericAttribute(UFPMassSettings::Get().AttackRangeAttribute);
+					// }
 
 					if (MoveToTarget.Center.IsZero() || ToTarget.SizeSquared2D() <= AttackRange * AttackRange)
 					{
