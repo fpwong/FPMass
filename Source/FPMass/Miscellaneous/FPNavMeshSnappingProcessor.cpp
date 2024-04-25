@@ -23,6 +23,7 @@ void UFPNavMeshSnappingProcessor::ConfigureQueries()
 
 void UFPNavMeshSnappingProcessor::Initialize(UObject& Owner)
 {
+	Super::Initialize(Owner);
 	// MassNavigationSubsystem = UWorld::GetSubsystem<UMassNavigationSubsystem>(Owner.GetWorld());
 	NavigationSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 }

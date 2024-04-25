@@ -9,6 +9,7 @@
 
 UFPSimpleWanderProcessor::UFPSimpleWanderProcessor() : EntityQuery(*this)
 {
+	bAutoRegisterWithProcessingPhases = false;
 	ExecutionFlags = static_cast<int32>(EProcessorExecutionFlags::Server | EProcessorExecutionFlags::Standalone);
 	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Tasks);
 	ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Avoidance);
@@ -25,6 +26,7 @@ void UFPSimpleWanderProcessor::ConfigureQueries()
 
 void UFPSimpleWanderProcessor::Initialize(UObject& Owner)
 {
+	Super::Initialize(Owner);
 	NavigationSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 }
 

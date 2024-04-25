@@ -41,6 +41,7 @@ void UFPSimpleEnemyProcessor::ConfigureQueries()
 
 void UFPSimpleEnemyProcessor::Initialize(UObject& Owner)
 {
+	Super::Initialize(Owner);
 	NavigationSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 }
 
