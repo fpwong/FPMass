@@ -60,14 +60,11 @@ void UFPMassBlueprintLibrary::StopISMAnimation(FMSEntityViewBPWrapper EntityHand
 	{
 		if (FFPISMAnimationFragment* AnimState = EntityHandle.EntityView.GetFragmentDataPtr<FFPISMAnimationFragment>())
 		{
-			Representation->ForEachActiveISMDescription([&](const FFPISMDescription& ISMDesc)
+			Representation->ForEachActiveISMDescription([AnimState](const FFPISMDescription& ISMDesc)
 			{
-				if (UFPAnimToTextureDataAsset* FPAnimToTexture = Cast<UFPAnimToTextureDataAsset>(ISMDesc.AnimToTextureData))
+				if (ISMDesc.AnimToTextureData)
 				{
-					if (ISMDesc.AnimToTextureData)
-					{
-						AnimState->CurrentMontage.Reset();
-					}
+					AnimState->CurrentMontage.Reset();
 				}
 			});
 		}
