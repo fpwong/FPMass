@@ -149,7 +149,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 				case EFPSimpleEnemyState::Moving:
 				{
 					// when we reach the target
-					float AttackRange = 200.f; // TODO read from ability system
+					float AttackRange = 50.f; // TODO read from ability system
 
 					// get attack range from attack ability CDO
 					if (IsValid(EnemyParameters.AttackAbility))
@@ -159,7 +159,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 							if (AbilityCDO->Implements<UFPAbilityInterface>())
 							{
 								AttackRange = IFPAbilityInterface::Execute_GetAbilityRange(AbilityCDO, AbilitySystem.Get());
-								AttackRange = FMath::Max(AttackRange, 150.0f);
+								AttackRange = FMath::Max(AttackRange, 50.0f);
 								// UE_LOG(LogTemp, Warning, TEXT("Get ability range %f"), AttackRange);
 							}
 						}
