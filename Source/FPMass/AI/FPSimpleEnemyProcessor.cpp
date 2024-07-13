@@ -37,6 +37,7 @@ void UFPSimpleEnemyProcessor::ConfigureQueries()
 	EntityQuery.AddRequirement<FFPSimpleEnemyStateFragment>(EMassFragmentAccess::ReadWrite);
 
 	EntityQuery.AddRequirement<FFPSimpleEnemyParameters>(EMassFragmentAccess::ReadOnly);
+	EntityQuery.AddRequirement<FAgentRadiusFragment>(EMassFragmentAccess::ReadOnly);
 }
 
 void UFPSimpleEnemyProcessor::Initialize(UObject& Owner)
@@ -59,6 +60,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 		const auto& AbilitySystemList = Context.GetFragmentView<FFPAbilitySystemFragment>();
 		const auto& TargetDataList = Context.GetMutableFragmentView<FFPTargetDataFragment>();
 		const auto& EnemyStateList = Context.GetMutableFragmentView<FFPSimpleEnemyStateFragment>();
+		const auto& AgentRadiusList = Context.GetMutableFragmentView<FAgentRadiusFragment>();
 
 		const auto& EnemyParametersList = Context.GetFragmentView<FFPSimpleEnemyParameters>();
 
@@ -75,6 +77,7 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			auto& AbilitySystem = AbilitySystemList[i].AbilitySystem;
 			FFPTargetDataFragment& TargetData = TargetDataList[i];
 			auto& EnemyParameters = EnemyParametersList[i];
+			auto& AgentRadius = AgentRadiusList[i];
 
 			FVector TargetLocation = MoveToTarget.Center;
 
@@ -164,6 +167,8 @@ void UFPSimpleEnemyProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 							}
 						}
 					}
+
+					AttackRange += AgentRadius.Radius;
 
 					// if (AbilitySystem.IsValid() && UFPMassSettings::Get().AttackRangeAttribute.IsValid())
 					// {
